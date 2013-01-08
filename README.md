@@ -8,9 +8,31 @@ Crypton allows the creation of cryptographically secure web applications where t
 
 ## Client side
 
-### Concepts
+On a high level, the Crypton client library is architected like the following diagram do provide transparent security:
 
-### Account
+````
+  Public API
+       |
+ Cryptography
+       |
+Secure random()
+    /     \
+  RNG    Entropy Accumulator
+````
+
+The client side API of Crypton resembles the following hierarchy:
+
+````
+ Account  -  Inbox
+    |
+ Session
+    |
+Containers
+    |
+ Objects
+````
+
+### Accounts
 
 Each user has an account with an arbitrary amount of plaintext data.
 
@@ -40,7 +62,7 @@ Send account to the server for storage
 
 TODO rate limiting or some other form of not getting pwned?
 
-### Session
+### Sessions
 
 A session is necessary for requesting and receiving data.
 
@@ -86,7 +108,7 @@ crypton.resurrect(sessionString, function (err, session) {
 
 See below
 
-### Container
+### Containers
 
 Data in Crypton is treated as a traditional object database. Containers are append-only stores that are transparently encrypted on the client side.
 
@@ -170,11 +192,11 @@ session.newContainer(newEntry.textContainerName, function (err, textContainer) {
 });
 ````
 
-### Object
+### Objects
 
 ### Inbox
 
-### Group
+### Groups
 
 ## Server side
 
