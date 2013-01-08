@@ -34,33 +34,37 @@ Containers
 
 ### Accounts
 
-Each user has an account with an arbitrary amount of plaintext data.
+Each user has an account with optional arbitrary plaintext data up to TODO kb. You can ask `crypton` to generate and account, which creates all necessary keyfiles:
 
 ````javascript
 var handle = 'inputFromUser';
 var passPhrase = 'moreInputFromUser';
 
-crypton.generateAccount(handle, passPhrase, function (err, account) {
+crypton.generateAccount(handle, passPhrase, accountHandler);
+````
+
+#### account.save(callback)
+
+Sends account object to the server for storage, either updating or creating the record.
+
+TODO rate limiting or some other form of not getting pwned?
+
+````javascript
+var accountHandler = function (err, account) {
   if (err) {
-    
+    // alert the user, adjust application flow
     return;
   }
 
   account.save(function (err) {
     if (err) {
-      
+      // alert the user, adjust application flow
       return;
     }
   
   });
 });
 ````
-
-#### account.save(callback)
-
-Send account to the server for storage
-
-TODO rate limiting or some other form of not getting pwned?
 
 ### Sessions
 
