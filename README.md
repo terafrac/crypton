@@ -56,9 +56,50 @@ crypton.authorize(handle, passPhrase, function (err, session) {
 ````
 
 #### session.serialize(callback)
+
+Serialize a session for storage
+
+````javascript
+session.serialize(function (err, sessionString) {
+  // store the data somewhere
+});
+````
+
 #### session.ping(callback)
 
+After resurrecting a cached session, we will want to make sure the server still beleives that it is valid. For example the session may be invalid is the password has been changed since it was saved, if the account has been deleted, or if it has been disabled server-side (such as for non-payment).
+
+````javascript
+crypton.resurrect(sessionString, function (err, session) {
+  session.ping(function (err) {
+    if (err) {
+      // alert the user
+      return;
+    }
+
+    // continue application flow
+  });
+});
+````
+
 ### Container
+
+Data in Crypton is treated as a traditional object database. Containers are append-only stores that are transparently encrypted on the client side.
+
+Containers are identified by keys such as "diary" in the example below. Any string is allowed. From the server's perspective, container names (and of course their contents) are unreadable.
+
+If the data set is going to grow very large, partitioning data across containers and lazy loading them as you need them can help with app load time. One simple tactic for partitioning data among containers is to keep app metadata all in one container, and keep bulky binary data (images, videos, long text strings, whatever) in many other containers. Metadata is usually very small, and can load quickly.
+
+For example, a diary app might have a single metadata container with a list of entries. Each entry has a title, date, keywords, and other basic attributes. Average size is probably under 500 bytes. So one entry per day for 10 years would only be be 1.8 meg. In 10 years, 1.8 meg will be like 1.8 KB today, so storing all this in one container is fine. Each entry would reference other containers to find the text of the entry and media attachments like images, videos, etc.
+
+````javascript
+session.load('diary', function (err, diary) {
+  // diary is a container, specific to the current account
+});
+````
+
+#### container#get(objectName, callback)
+#### container#save(callback)
 
 ### Object
 
