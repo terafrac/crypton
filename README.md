@@ -34,7 +34,7 @@ crypton.generateAccount(handle, passPhrase, function (err, account) {
 });
 ````
 
-#### account#save(callback)
+#### account.save(callback)
 
 Send account to the server for storage
 
@@ -82,6 +82,10 @@ crypton.resurrect(sessionString, function (err, session) {
 });
 ````
 
+#### session.createContainer()
+
+See below
+
 ### Container
 
 Data in Crypton is treated as a traditional object database. Containers are append-only stores that are transparently encrypted on the client side.
@@ -98,8 +102,73 @@ session.load('diary', function (err, diary) {
 });
 ````
 
-#### container#get(objectName, callback)
-#### container#save(callback)
+#### container.get(objectName, callback)
+
+Retreive and object from said container and transparently decrypt it
+
+````javascript
+container.get('entries', function (err, diaryEntries) {
+  if (err) {
+    // alert the user, adjust the application flow
+    return;
+  }
+
+  window.diaryEntries = diaryEntries;
+});
+
+container.get('drafts', function (err, diaryEntries) {
+  if (err) {
+    // alert the user, adjust the application flow
+    return;
+  }
+
+  window.diaryDrafts = diaryDrafts;
+});
+````
+
+#### container.save(callback)
+
+````javascript
+var newEntry = {
+  id: diaryEntries.length + diaryDrafts.length,
+  title: 'Adventures with Crypto'
+};
+
+diaryDrafts.push(newEntry);
+
+// Atomically save all modified objects back to the container. If we had made
+// changes to either diaryEntries or diaryDrafts, both would be saved. The
+// default parameters for saving objects preserves object history (i.e. previous
+// versions of the object are still reachable) and uses diffing where
+// appropritae to minimize the total size. 
+diaryDrafts.save(function (err) {
+  if (err) {
+    // alert the user
+    return;
+  }
+
+});
+````
+
+#### container.add(key, value);
+
+Let's add some more content to this entry. We'll store the text content separately from the metadata, in its own one-off container.
+
+````javascript
+var text = 'Dear diary,\n\nToday, I transparently encrypted data with the RSA algorithm and it was dreamy.';
+
+newEntry.textContainerName = 'textFor' + newEntry.id;
+session.newContainer(newEntry.textContainerName, function (err, textContainer) {
+  textContainer.add(newEntry.id, text);
+  textContainer.save(function (err) {
+    if (err) {
+      // alert the user
+      return;
+    }
+
+  });
+});
+````
 
 ### Object
 
