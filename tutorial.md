@@ -1,12 +1,8 @@
-# Crypton
+# Introduction
 
-A zero-knowledge application framework
+Crypton allows the creation of cryptographically secure web applications where the server is blind to the data being stored. This giving the user peace of mind that their data is theirs alone to see.
 
-## Introduction
-
-Crypton allows the creation of cryptographically secure web applications where the server is blind to the data being stored. This giving the user peace of mind that their data is their's alone to see.
-
-## Client side
+# Client side
 
 On a high level, the Crypton client library is architected like the following diagram do provide transparent security:
 
@@ -32,7 +28,7 @@ Containers
  Objects
 ````
 
-### Accounts
+## Accounts
 
 Each user has an account with optional arbitrary plaintext data up to TODO kb. You can ask `crypton` to generate and account, which creates all necessary keyfiles:
 
@@ -43,7 +39,7 @@ var passPhrase = 'moreInputFromUser';
 crypton.generateAccount(handle, passPhrase, accountHandler);
 ````
 
-#### account.save(callback)
+### account.save(callback)
 
 Sends account object to the server for storage, either updating or creating the record.
 
@@ -66,7 +62,7 @@ var accountHandler = function (err, account) {
 });
 ````
 
-### Sessions
+## Sessions
 
 A session is necessary for requesting and receiving data.
 
@@ -81,7 +77,7 @@ crypton.authorize(handle, passPhrase, function (err, session) {
 });
 ````
 
-#### session.serialize(callback)
+### session.serialize(callback)
 
 Serialize a session for storage
 
@@ -91,7 +87,7 @@ session.serialize(function (err, sessionString) {
 });
 ````
 
-#### session.ping(callback)
+### session.ping(callback)
 
 After resurrecting a cached session, we will want to make sure the server still beleives that it is valid. For example the session may be invalid is the password has been changed since it was saved, if the account has been deleted, or if it has been disabled server-side (such as for non-payment).
 
@@ -108,12 +104,12 @@ crypton.resurrect(sessionString, function (err, session) {
 });
 ````
 
-#### session.load(containerName, callback)
-#### session.create(containerName, callback)
+### session.load(containerName, callback)
+### session.create(containerName, callback)
 
 See below
 
-### Containers
+## Containers
 
 Data in Crypton is treated as a traditional object database. Containers are append-only stores that are transparently encrypted on the client side.
 
@@ -129,7 +125,7 @@ session.load('diary', function (err, diary) {
 });
 ````
 
-#### container.get(objectName, callback)
+### container.get(objectName, callback)
 
 Retreive and object from said container and transparently decrypt it
 
@@ -153,7 +149,7 @@ container.get('drafts', function (err, diaryEntries) {
 });
 ````
 
-#### container.save(callback)
+### container.save(callback)
 
 ````javascript
 var newEntry = {
@@ -177,7 +173,7 @@ diaryDrafts.save(function (err) {
 });
 ````
 
-#### container.add(key, value);
+### container.add(key, value);
 
 Let's add some more content to this entry. We'll store the text content separately from the metadata, in its own one-off container.
 
@@ -197,11 +193,11 @@ session.newContainer(newEntry.textContainerName, function (err, textContainer) {
 });
 ````
 
-### Objects
+## Objects
 
-### Inbox
+## Inbox
 
-### Groups
+## Groups
 
-## Server side
+# Server side
 
