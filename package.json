@@ -1,0 +1,17 @@
+{
+  "author": "SpiderOak (http://spideroak.com/)",
+  "name": "crypton",
+  "description": "A zero-knowledge application framework",
+  "version": "0.0.0",
+  "homepage": "http://crypton.io",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SpiderOak/crypton.git"
+  },
+  "engines": {
+    "node": "~0.8.1"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
