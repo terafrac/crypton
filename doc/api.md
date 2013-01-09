@@ -28,7 +28,7 @@ Sets session_identifier cookie (logs you in immediately) upon successful request
 
 ### POST /account/:username
 
-Logs into account and sets session_identifier cookie.
+Logs into account and sets `session_identifier` cookie.
 
 Required body:
 
@@ -54,7 +54,7 @@ Required body:
 
 ### GET /session
 
-Pings the server to verify that the session is still valid. Must send session_identifier cookie.
+Pings the server to verify that the session is still valid. Must send `session_identifier` cookie.
 
 If the session is invalid when an authentication-requiring route is requested, the default response will be:
 
@@ -69,16 +69,15 @@ If the session is invalid when an authentication-requiring route is requested, t
 
 ### POST /transaction
 
-Generates and sets transaction_token cookie.
+Generates and sets `transaction_token` cookie.
 
-Requires session_identifier cookie.
-
+Requires `session_identifier` cookie.
 
 ### POST /transaction/:token/commit
 
 Commit (finalize) the transaction.
 
-Requires session_identifier cookie.
+Requires `session_identifier` cookie.
 
 May return the following:
 
@@ -93,7 +92,7 @@ May return the following:
 
 Cancel a transaction without committing it to the server.
 
-Requires session_identifier cookie.
+Requires `session_identifier` cookie.
 
 May return the following:
 
@@ -110,6 +109,8 @@ May return the following:
 
 Returns all headers of the records in the container.
 
+Requires `session_identifier` cookie.
+
 Optional parameter `?after=record_version_identifier` will only return the headers for records occuring after said `record_version_identifier`
 
 Example:
@@ -125,6 +126,8 @@ Example:
 `multipart/form-upload` of json + payload for this modification
 // TODO fail early if the transaction is borked
 
+Requires `session_identifier` cookie.
+
 A valid transaction token is required or the route will return the following:
 
 ````javascript
@@ -138,11 +141,15 @@ A valid transaction token is required or the route will return the following:
 
 Returns binary data of the ciphertext from the given `record_version_identifier` of the enciphered `container_name`.
 
+Requires `session_identifier` cookie.
+
 ## Messages
 
 ### GET /inbox
 
 Returns list of message headers as JSON objects.
+
+Requires `session_identifier` cookie.
 
 Optional parameters of `from=username` and `since=timestamp` may be used to filter.
 
@@ -158,6 +165,8 @@ Example response:
 
 Returns headers and ciphtertext of payload of message with matching `message_identifier`
 
+Requires `session_identifier` cookie.
+
 Example response:
 
 ````javascript
@@ -170,7 +179,7 @@ Example response:
 
 Deletes a given message by `message_identifier`
 
-Requires session_identifier cookie.
+Requires `session_identifier` cookie.
 
 May return the following:
 
@@ -185,6 +194,8 @@ May return the following:
 
 Send a message by `multipart/form-upload` of json + payload
 // TODO fail early if the transaction is borked
+
+Requires `session_identifier` cookie.
 
 Example post data:
 
