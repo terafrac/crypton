@@ -2,6 +2,14 @@
 
 # Server
 
+The server is a simple REST server running on node. The default all bodies are sent and received with JSON. The default success response is:
+
+````javascript
+{
+  success: true
+}
+````
+
 ## Account
 
 ### POST /account
@@ -46,23 +54,14 @@ Required body:
 
 ### GET /session
 
-(ping to server to verify that the session is still valid).
 Pings the server to verify that the session is still valid. Must send session_identifier cookie.
 
-Returns either
-
-````javascript
-{
-  success: true
-}
-````
-
-or
+If the session is invalid when an authentication-requiring route is requested, the default response will be:
 
 ````javascript
 {
   success: false,
-  error: "error message"
+  error: "Not logged in"
 }
 ````
 
@@ -74,20 +73,6 @@ Generates and sets transaction_token cookie.
 
 Requires session_identifier cookie.
 
-````javascript
-{
-  success: true
-}
-````
-
-or
-
-````javascript
-{
-  success: false,
-  error: "Not logged in"
-}
-````
 
 ### POST /transaction/:token/commit
 
@@ -95,24 +80,7 @@ Commit (finalize) the transaction.
 
 Requires session_identifier cookie.
 
-Returns one of the following:
-
-````javascript
-{
-  success: true
-}
-````
-
-or
-
-````javascript
-{
-  success: false,
-  error: "Not logged in"
-}
-````
-
-or
+May return the following:
 
 ````javascript
 {
@@ -127,24 +95,7 @@ Cancel a transaction without committing it to the server.
 
 Requires session_identifier cookie.
 
-Returns one of the following:
-
-````javascript
-{
-  success: true
-}
-````
-
-or
-
-````javascript
-{
-  success: false,
-  error: "Not logged in"
-}
-````
-
-or
+May return the following:
 
 ````javascript
 {
@@ -157,34 +108,97 @@ or
 
 ### GET /container/:container_name_ciphertext
 
-all the headers of the records in the container
+Returns all headers of the records in the container.
 
-### GET /container/:container_name_ciphertext?after=:record_version_identifier
-all the headers of the records in the container since some version identifier
+Optional parameter `?after=record_version_identifier` will only return the headers for records occuring after said `record_version_identifier`
+
+Example:
+
+````javascript
+{
+
+}
+````
 
 ### POST /container/:container_name_ciphertext
-(fails if there is no transaction_token cookie set)
-multipart/form-upload of json + payload for this modification // TODO fail early if the transaction is borked
+
+`multipart/form-upload` of json + payload for this modification
+// TODO fail early if the transaction is borked
+
+A valid transaction token is required or the route will return the following:
+
+````javascript
+{
+  success: false,
+  error: "Transaction token invalid"
+}
+````
 
 ### GET /container/:container_name_ciphertext/:record_version_identifier
-returns binary data of the ciphertext from the container's record.
+
+Returns binary data of the ciphertext from the given `record_version_identifier` of the enciphered `container_name`.
 
 ## Messages
 
 ### GET /inbox
-returns list of message headers as json objects
 
-### GET /inbox?from=:username , since=:time , ....
-filter list of message headers as json objects by various things
+Returns list of message headers as JSON objects.
+
+Optional parameters of `from=username` and `since=timestamp` may be used to filter.
+
+Example response:
+
+````javascript
+{
+
+}
+````
 
 ### GET /inbox/:message_identifier
-returns ciphtertext of payload of the message
+
+Returns headers and ciphtertext of payload of message with matching `message_identifier`
+
+Example response:
+
+````javascript
+{
+
+}
+````
 
 ### DELETE /inbox/:message_identifier
-(fails if there is no transaction_token cookie set)
-returns ciphtertext of payload of the message
+
+Deletes a given message by `message_identifier`
+
+Requires session_identifier cookie.
+
+May return the following:
+
+````javascript
+{
+  success: false,
+  error: "Transaction token invalid"
+}
+````
 
 ### POST /outbox
-(fails if there is no transaction_token cookie set)
-multipart/form-upload of json + payload for this message // TODO fail early if the transaction is borked
 
+Send a message by `multipart/form-upload` of json + payload
+// TODO fail early if the transaction is borked
+
+Example post data:
+
+````javascript
+// TODO decide on format
+````
+
+Requires session_identifier cookie.
+
+May return the following:
+
+````javascript
+{
+  success: false,
+  error: "Transaction token invalid"
+}
+````
