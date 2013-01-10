@@ -28,6 +28,14 @@ Reconstructs a serialized session and pings the server to check its validity.
 
 ## Sessions
 
+### session.on(eventName, callback)
+
+Session objects are event emitters. `on()`
+
+### session.off(eventName)
+
+Removes all event listeners for a given `eventName`.
+
 ### session.serialize(callback)
 
 Stringifies said session object for later use, and calls back with a potentially empty `error` argument and a conditional `session` string argument.
@@ -86,6 +94,27 @@ Checks with the server for new account versions from other devices. Calls back w
 
 Holds the current version hash of the session.
 
+## Transactions
+
+Transactions are how all data is moved to the server. All `save()` methods transparently construct a transaction and commit it. 
+
+### tx = session.transaction.create()
+
+### tx.chunks
+
+An array holding the `save()`d chunks of the transaction.
+
+### tx.save(container, object, [container1, container2], ...)
+
+Adds a chunk of data to the server. Accepts an abitrary amount of arguments containing containers and/or their objects in any format.
+
+### tx.commit(callback)
+
+_crypto_
+_diff_
+
+Finalizes the transaction, determines differences in containers, encrypts the data, and sends it to the server. Calls back with a potentially empty `error` argument. If the argument is empty, the transaction has been committed.
+
 ## Containers
 
 ### container.get(objectName, callback)
@@ -107,6 +136,46 @@ Adds a magic key to said container.
 ### container.version
 
 Holds the current version hash of the container.
+
+### container.getHistory(callback)
+
+Hits the server for a list of known version identifiers. Calls back with a potentially empty `error` argument and conditionally a `history` argument containing an array of version identifiers.
+
+### container.getDiff(callback)
+
+Constructs a Diff object containing the changes with the last known version of the container. Calls back with a potentially empty `error` argument, and conditionally a `diff` argument.
+
+## Messages
+
+### session.inbox.poll(callback)
+
+### session.inbox.list(callback)
+
+### session.inbox.filter()
+
+### session.inbox.get()
+
+### session.inbox.delete()
+
+### session.inbox.clear()
+
+### session.inbox.on()
+
+### message.headers
+
+### message.body
+
+### message.delete()
+
+## Peers
+
+### session.getPeer()
+
+### peer.sendMessage()
+
+### peer.share()
+
+### peer.unshare()
 
 # Server
 
