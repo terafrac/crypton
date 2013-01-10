@@ -2,11 +2,25 @@
 
 ## Global
 
+### crypton.host and crypton.port
+
+Defaults to `localhost:2013`. You should override these before any other calls are made. Note that cross-domain requests may be enabled in the server configuration.
+
+### crypton.on(eventName, callback)
+
 ### crypton.generateAcount(username, passphrase, callback)
+
+Creates an account object and generates the appropriate salts and keys. 
+
+Checks with the server to validate the username, and calls back with a potentially empty `error` argument and a conditional `account` argument which must still be `save()`d.
 
 ### crypton.authorize(username, passphrase, callback)
 
+Performs the necessary handshakes with the server, and calls back with a potentiall empty `error` object and a conditional `session` argument.
+
 ### crypton.resurrect(sessionString, callback)
+
+Reconstructs a serialized session and pings the server to check its validity.
 
 ## Sessions
 
@@ -20,13 +34,28 @@
 
 ## Accounts
 
-## session.account
+### session.account
 
-## session.account.save(callback)
+An object containing a representation of the account associated with said session.
 
-## session.account.refresh(callback)
+Example structure:
 
-## session.account.version(callback)
+````javascript
+{
+  username: String,
+  passphrase: String,
+  keys: { },
+  save: Function,
+  refresh: Function,
+  version: Function
+}
+````
+
+### session.account.save(callback)
+
+### session.account.refresh(callback)
+
+### session.account.version(callback)
 
 ## Containers
 
