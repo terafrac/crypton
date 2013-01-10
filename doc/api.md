@@ -1,5 +1,35 @@
 # Client
 
+## Global
+
+### crypton.generateAcount(username, passphrase, callback)
+
+### crypton.authorize(username, passphrase, callback)
+
+### crypton.resurrect(sessionString, callback)
+
+## Accounts
+
+
+
+## Sessions
+
+### session.serialize(callback)
+
+### session.ping(callback)
+
+### session.load(containerName, callback)
+
+### session.create(containerName, callback)
+
+## Containers
+
+### container.get(objectName, callback)
+
+### container.save(callback)
+
+### container.add(key, value)
+
 # Server
 
 The server is a simple REST server running on node. The default all bodies are sent and received with JSON. The default success response is:
