@@ -8,10 +8,6 @@
 
 ### crypton.resurrect(sessionString, callback)
 
-## Accounts
-
-
-
 ## Sessions
 
 ### session.serialize(callback)
@@ -21,6 +17,16 @@
 ### session.load(containerName, callback)
 
 ### session.create(containerName, callback)
+
+## Accounts
+
+## session.account
+
+## session.account.save(callback)
+
+## session.account.refresh(callback)
+
+## session.account.version(callback)
 
 ## Containers
 
