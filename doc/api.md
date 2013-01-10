@@ -10,11 +10,15 @@ Defaults to `localhost:2013`. You should override these before any other calls a
 
 ### crypton.generateAcount(username, passphrase, callback)
 
+_crypto_
+
 Creates an account object and generates the appropriate salts and keys. 
 
 Checks with the server to validate the username, and calls back with a potentially empty `error` argument and a conditional `account` argument which must still be `save()`d.
 
 ### crypton.authorize(username, passphrase, callback)
+
+_crypto_
 
 Performs the necessary handshakes with the server, and calls back with a potentiall empty `error` object and a conditional `session` argument.
 
@@ -26,11 +30,25 @@ Reconstructs a serialized session and pings the server to check its validity.
 
 ### session.serialize(callback)
 
+Stringifies said session object for later use, and calls back with a potentially empty `error` argument and a conditional `session` string argument.
+
 ### session.ping(callback)
+
+Hits the appropriate route on the server to check for the validity of said session. Calls back with a potentially empty `error` argument. If the argument is empty, the session is still valid.
 
 ### session.load(containerName, callback)
 
+_crypto_
+
+Checks for a cached `container` that is available to said session. If the `container` is not cached, the server is queried for 
+
 ### session.create(containerName, callback)
+
+_crypto_
+
+Attempts to create a container, checking with the server to see if the namespace is available for the current session. Calls back with a potentially empty `error` argument.
+
+Container names are encrypted and their plaintext is unknown to the server.
 
 ## Accounts
 
@@ -53,17 +71,42 @@ Example structure:
 
 ### session.account.save(callback)
 
+_crypto_
+_diff_
+
+Determines the differences between the previous version of the account of said session and saves it with the server. Calls back with a potentially empty `error` argument.
+
 ### session.account.refresh(callback)
 
-### session.account.version(callback)
+_crypto?_
+
+Checks with the server for new account versions from other devices. Calls back with a potentially empty `error` argument. If the argument is empty, the account has been updated.
+
+### session.account.version
+
+Holds the current version hash of the session.
 
 ## Containers
 
 ### container.get(objectName, callback)
 
+_crypto_
+_undiff_
+
 ### container.save(callback)
 
+_crypto_
+_diff_
+
+Determines the differences with the previously saved version of the container. Calls back with a potentially empty `error` argument. If the argument is empty, the container has been committed to the server.
+
 ### container.add(key, value)
+
+Adds a magic key to said container.
+
+### container.version
+
+Holds the current version hash of the container.
 
 # Server
 
