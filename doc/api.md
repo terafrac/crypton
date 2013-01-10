@@ -40,7 +40,7 @@ Hits the appropriate route on the server to check for the validity of said sessi
 
 _crypto_
 
-Checks for a cached `container` that is available to said session. If the `container` is not cached, the server is queried for 
+Checks for a cached `container` that is available to said session. If the `container` is not cached or a more current version is available, the latest version is retreived from the server and cached.
 
 ### session.create(containerName, callback)
 
