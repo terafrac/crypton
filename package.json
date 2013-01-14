@@ -11,7 +11,14 @@
   "engines": {
     "node": "~0.8.1"
   },
-  "dependencies": {},
+  "bin": {
+    "crypton": "server.js"
+  },
+  "dependencies": {
+    "cryptojs": "2.5.x",
+    "express": "3.x",
+    "commander": "1.1.x"
+  },
   "devDependencies": {},
   "optionalDependencies": {}
 }
