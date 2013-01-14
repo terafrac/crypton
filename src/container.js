@@ -1,4 +1,3 @@
-(function () {
 var Container = function () {
   
 }
@@ -16,4 +15,3 @@ Container.prototype.getDiff = function () {
 }
 
 window.crypton.Container = Container;
-})();

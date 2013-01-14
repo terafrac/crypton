@@ -1,4 +1,3 @@
-(function () {
 var Account = function () {
   
 }
@@ -10,4 +9,3 @@ Account.prototype.refresh = function () {
 }
 
 window.crypton.Account = Account;
-})();

@@ -1,4 +1,3 @@
-(function () {
 var Transaction = function () {
   
 }
@@ -10,4 +9,3 @@ Transaction.prototype.commit = function () {
 }
 
 window.crypton.Transaction = Transaction;
-})();
