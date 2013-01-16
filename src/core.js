@@ -6,47 +6,44 @@ var crypton = {};
   crypton.post = '2013';
 
   function randomString (nbytes) {
-    return CryptoJS.lib.WordArray.random(32).toString();
+    return CryptoJS.lib.WordArray.random(nbytes).toString();
   }
 
-  function uuid () {
-    return 'foo';
-  }
+  crypton.uuid = (function () {
+    var privateCounter = 1;
+    var initialTimestamp = +new Date();
+    return function () {
+      privateCounter += 1;
+      return CryptoJS.SHA256(randomString(32) + initialTimestamp + privateCounter).toString();
+    }
+  })();
 
   crypton.generateAccount = function (username, passphrase, step, callback) {
-/*
-cipher = aes256cfb(key=keypair_key, iv=keypair_iv)
-# XXX padding (must be length of multiple of 16)
-keypair_serialized_ciphertext = cipher.encrypt(keypair_as_string) 
+    var account = new crypton.Account();
+    account.username = username;
+    account.hmacKey = randomString(32);
+    account.saltKey = randomString(32);
+    account.saltChallenge = randomString(32);
 
-symkey_ciphertext = rsa_keypair_obj.encrypt_to_private(symkey)
-container_name_hmac_key_iv = sha256(uuid()).digest()[:16]
-cipher = aes256cfb(key=symkey, iv=container_name_hmac_key_iv)
-container_name_hmac_key_ciphertext = cipher.encrypt(container_name_hmac_key)
-hmac_key_iv = sha256(uuid()).digest()[:16]
-cipher = aes256cfb(key=symkey, iv=hmac_key_iv)
-hmac_key_ciphertext = cipher.encrypt(hmac_key)
-*/
-    var account = {};
-    var containerNameHmacKey = randomString();
-    var hmacKey = randomString();
-    var symkey = randomString();
-    account.saltKey = randomString();
-    account.saltChallenge = randomString();
+    var containerNameHmacKey = randomString(32);
+    var symkey = randomString(32);
 
     step();
 
     var keypairBits = 2048;
+    //var keypairBits = 512;
     var start = +new Date();
     var keypair = new RSAKey();
     keypair.generateAsync(keypairBits, '03', step, function done () {
       account.pubKey = hex2b64(keypair.n.toString(16));
-      console.log(keypair, account);
+      account.symkeyCiphertext = keypair.encrypt(symkey);
 
-      var challengeKey = CryptoJS.PBKDF2(passphrase, account.saltChallenge, { 
+      step();
+
+      account.challengeKey = CryptoJS.PBKDF2(passphrase, account.saltChallenge, { 
         keySize: 128 / 32,
         // iterations: 1000
-      });
+      }).toString();
 
       step();
 
@@ -57,17 +54,36 @@ hmac_key_ciphertext = cipher.encrypt(hmac_key)
 
       step();
 
-      var keypairIv = CryptoJS.SHA256(uuid()).toString().slice(0, 16);
-
-      /*
-      var cipher = CryptoJS.AES.encrypt(JSON.stringify(keypair), keypairKey, {
-        iv: keypairIv,
-        //mode: CryptoJS.mode.CFB,
-        //padding: CryptoJS.pad.AnsiX923
-      });
-      */
+      account.keypairIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
+        JSON.stringify(keypair), keypairKey.toString(), {
+          iv: account.keypairIv,
+          mode: CryptoJS.mode.CFB,
+          // padding: TODO (must be length of multiple of 16)
+        }
+      ).ciphertext.toString();
 
       step();
+
+      account.containerNameHmacKeyIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.containerNameHmacKeyCiphertext = CryptoJS.AES.encrypt(
+        containerNameHmacKey, symkey, {
+          iv: account.containerNameHmacKeyIv,
+          mode: CryptoJS.mode.CFB,
+          // padding: TODO (must be length of multiple of 16)
+        }
+      ).ciphertext.toString();
+
+      step();
+
+      account.hmacKeyIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.hmacKeyCiphertext = CryptoJS.AES.encrypt(
+        account.hmacKey, symkey, {
+          iv: account.hmacKeyIv,
+          mode: CryptoJS.mode.CFB,
+          // padding: TODO (must be length of multiple of 16)
+        }
+      ).ciphertext.toString();
 
       callback(null, account);
     });

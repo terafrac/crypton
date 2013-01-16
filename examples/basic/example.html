@@ -17,7 +17,8 @@
     crypton.generateAccount('a', 'b', function step () {
       progress.value = ++steps;
       status.innerHTML = steps;
-    }, function done () {
+    }, function done (err, account) {
+      console.log(account);
       progress.value = 2048;
       status.innerHTML = 'done';
     });
