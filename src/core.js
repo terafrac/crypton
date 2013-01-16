@@ -31,7 +31,6 @@ var crypton = {};
     step();
 
     var keypairBits = 2048;
-    //var keypairBits = 512;
     var start = +new Date();
     var keypair = new RSAKey();
     keypair.generateAsync(keypairBits, '03', step, function done () {
