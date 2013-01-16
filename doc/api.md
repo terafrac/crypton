@@ -294,6 +294,7 @@ Constructs a Diff object containing the changes with the last known version of t
 
 ### peer.sendMessage()
 
+````
 function uuid_factory() {
     // build a function that generates sequential uuids that are difficult to
     // cause collisions, but don't require constant streoam of new entropy
@@ -348,7 +349,7 @@ post this:
     body_ciphertext:
     message_signature:
 }
-
+````
 
 ### peer.share()
 
