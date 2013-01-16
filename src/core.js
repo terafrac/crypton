@@ -3,7 +3,7 @@ var crypton = {};
 (function () {
   crypton.version = '0.0.1';
   crypton.host = 'localhost';
-  crypton.post = '2013';
+  crypton.port = '2013';
 
   function randomString (nbytes) {
     return CryptoJS.lib.WordArray.random(nbytes).toString();
