@@ -5,6 +5,11 @@ var crypton = {};
   crypton.host = 'localhost';
   crypton.port = '2013';
 
+  crypton.url = function () {
+    // TODO HTTPS
+    return 'http://' + crypton.host + ':' + crypton.port;
+  }
+
   function randomString (nbytes) {
     return CryptoJS.lib.WordArray.random(nbytes).toString();
   }
@@ -84,7 +89,9 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
-      callback(null, account);
+      account.save(function () {
+        callback(null, account);
+      });
     });
   };
 

@@ -26,6 +26,7 @@ compile() {
     src/transaction.js \
     src/peer.js \
     src/message.js \
+    src/request.js \
     src/crypto/*.js \
     src/rsa/*.js \
     > dist/crypton.js`
