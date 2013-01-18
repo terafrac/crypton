@@ -1,9 +1,13 @@
-<!--
+Crypton simplifies the creation of cryptographically secure web applications where the server is blind to the data being stored. This gives the user peace of mind that their data is theirs alone to see.
+
+Crypton provides a simple public JavaScript API and drop-in server, hiding the cryptographic complexity from the application developer.
+
+Client-side JavaScript cryptography is a new field of possibilities. We aim to create the framework that we had years ago while starting our SpiderOak backup product, and hope that it will benefit the Internet and world at large.
 
                          _______________________
                        //   __..--~~~~--..__    \\
                       ||___/  |  |   |  |   \ __/ |
-                      ||  /   ___________    \    |  curl crypton.io/cryptonauts
+                      ||  /   ___________    \    |
                       ||_/   /.......... \    |   |
                       | |   /..........   \   |   |
  _____________________| |  /...........    \  |   |________________
@@ -57,55 +61,6 @@
    __~~..   - ~  ' /___      ----\ /--...___      \
                   /    ..--      | | __..     ___./  .     .   ~
       - ~  '..    \  __________./  |_____________/  .   - ~  ' ~~~~
-  ..._____~~~~~~   \___________/    \___________/  -_______...._____
+  ..._____~~~~~~JRO\___________/    \___________/  -_______...._____
 ..            ___ . ~~~~~~~~~~~. __\ ~~~~~~~~~~~~~...      _  ~
 __    ....         ''        ...""       ....'''      -_~~~     ~~~...
--->
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset=utf-8 />
-<title>Crypton - a Zero Knowledge application framework</title>
-<!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>-->
-<style>
-body {
-  background: #0096d6;
-  color: #fff;
-  text-align: center;
-  font: 18px 'HelveticaNeue', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-#container {
-  width: 500px;
-  margin: 0 auto;
-  text-align: justify;
-  opacity: 0.9;
-  line-height: 28px;
-}
-
-p {
-  margin: 70px 0;
-}
-
-a {
-  color: #fff;
-}
-
-small {
-  opacity: 0.5;
-}
-
-.center {
-  text-align: center;
-}
-</style>
-</head>
-<body>
-  <div id="container">
-    <p class="center"><img src="crypton.png" alt="Crypton" /></p>
-    <p class="center">Beta release late February 2013</p>
-    <p class="center"><small>An open source project from <a href="http://spideroak.com/">SpiderOak</a></small></p>
-  </div>
-</body>
-</html>
