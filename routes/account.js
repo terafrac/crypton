@@ -1,4 +1,5 @@
 var app = process.app;
+var db = app.datastore;
 
 app.post('/account', function (req, res) {
   console.log(req.body);
