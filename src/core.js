@@ -11,7 +11,7 @@ var crypton = {};
   }
 
   function randomString (nbytes) {
-    return CryptoJS.lib.WordArray.random(nbytes).toString();
+    return CryptoJS.lib.WordArray.random(nbytes / 2).toString();
   }
 
   crypton.uuid = (function () {
