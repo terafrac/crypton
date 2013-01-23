@@ -11,7 +11,15 @@ var crypton = {};
   }
 
   function randomString (nbytes) {
-    return CryptoJS.lib.WordArray.random(nbytes / 2).toString();
+    var a = CryptoJS.lib.WordArray.random(nbytes).toString();
+    var b = CryptoJS.lib.WordArray.random(nbytes).toString();
+    var c = [];
+
+    for (var i = 0; i < nbytes; i++) {
+      c[i] = String.fromCharCode(a.charCodeAt(i) ^ b.charCodeAt(i + (nbytes / 2)) & 512);
+    }
+
+    return c.join('');
   }
 
   crypton.uuid = (function () {
