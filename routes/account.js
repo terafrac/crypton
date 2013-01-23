@@ -18,6 +18,8 @@ app.post('/account', function (req, res) {
       return;
     }
 
+
+    // TODO passing req.body is bad practice and a potential security threat
     db.saveUser(req.body, function (err) {
       if (err) {
         res.send({
@@ -40,6 +42,13 @@ app.post('/account', function (req, res) {
  */
 app.post('/account/:username', function (req, res) {
   db.getUser(req.params.username, function (err, user) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
     // create a challenge
     var randomString = crypto.randomBytes(32).toString('hex');
     var time = +new Date();
