@@ -61,7 +61,7 @@ var crypton = {};
 
       account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
-        JSON.stringify(keypair), keypairKey.toString(), {
+        keypair.serialize(), keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
           // padding: TODO (must be length of multiple of 16)
@@ -90,7 +90,14 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
-      console.log(account);
+      // convert WordArrays to strings for serialization
+      account.hmacKey = account.hmacKey.toString();
+      account.saltChallenge = account.saltChallenge.toString();
+      account.saltKey = account.saltKey.toString();
+      account.keypairIv = account.keypairIv.toString();
+      account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
+      account.hmacKeyIv = account.hmacKeyIv.toString();
+
       account.save(function () {
         callback(null, account);
       });

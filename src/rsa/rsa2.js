@@ -130,3 +130,42 @@ RSAKey.prototype.setPrivateEx = RSASetPrivateEx;
 RSAKey.prototype.generate = RSAGenerate;
 RSAKey.prototype.decrypt = RSADecrypt;
 //RSAKey.prototype.b64_decrypt = RSAB64Decrypt;
+
+/*
+ * Serialization functions
+ * Cam Pedersen
+ * 1/23/2013
+ */
+
+function RSASerialize () {
+  var s = {
+    n: this.n.toString(),
+    e: this.e,
+    d: this.d.toString(),
+    p: this.p.toString(),
+    q: this.q.toString(),
+    dmp1: this.dmp1.toString(),
+    dmq1: this.dmq1.toString(),
+    coeff: this.coeff.toString()
+  };
+
+  return JSON.stringify(s);
+}
+
+function RSAFromString (s) {
+  s = JSON.parse(s);
+  var z = new RSAKey();
+  z.n = new BigInteger(s.n);
+  z.e = s.e;
+  z.d = new BigInteger(s.d);
+  z.p = new BigInteger(s.p);
+  z.q = new BigInteger(s.q);
+  z.dmp1 = new BigInteger(s.dmp1);
+  z.dmq1 = new BigInteger(s.dmq1);
+  z.coeff = new BigInteger(s.coeff); 
+  return z;
+}
+
+RSAKey.prototype.serialize = RSASerialize;
+RSAKey.prototype.fromString = RSAFromString;
+

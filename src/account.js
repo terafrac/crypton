@@ -6,8 +6,8 @@
   Account.prototype.save = function (callback) {
     superagent.post(crypton.url() + '/account')
       .send(this.serialize())
-      .end(function () {
-        console.log(arguments);
+      .end(function (res) {
+        console.log(res.body);
         callback();
       }
     );
