@@ -10,16 +10,8 @@ var crypton = {};
     return 'http://' + crypton.host + ':' + crypton.port;
   }
 
-  function randomString (nbytes) {
-    var a = CryptoJS.lib.WordArray.random(nbytes).toString();
-    var b = CryptoJS.lib.WordArray.random(nbytes).toString();
-    var c = [];
-
-    for (var i = 0; i < nbytes; i++) {
-      c[i] = String.fromCharCode(a.charCodeAt(i) ^ b.charCodeAt(i + (nbytes / 2)) & 512);
-    }
-
-    return c.join('');
+  function randomBytes (nbytes) {
+    return CryptoJS.lib.WordArray.random(nbytes) //.toString(CryptoJS.enc.Latin1);
   }
 
   crypton.uuid = (function () {
@@ -27,19 +19,20 @@ var crypton = {};
     var initialTimestamp = +new Date();
     return function () {
       privateCounter += 1;
-      return CryptoJS.SHA256(randomString(32) + initialTimestamp + privateCounter).toString();
+      return CryptoJS.SHA256(randomBytes(32) + initialTimestamp + privateCounter).toString();
     }
   })();
 
   crypton.generateAccount = function (username, passphrase, step, callback) {
     var account = new crypton.Account();
     account.username = username;
-    account.hmacKey = randomString(32);
-    account.saltKey = randomString(32);
-    account.saltChallenge = randomString(32);
+    account.hmacKey = randomBytes(32);
+    account.saltKey = randomBytes(32);
+    account.saltChallenge = randomBytes(32);
+    console.log(account);
 
-    var containerNameHmacKey = randomString(32);
-    var symkey = randomString(32);
+    var containerNameHmacKey = randomBytes(32);
+    var symkey = randomBytes(32);
 
     step();
 
@@ -66,7 +59,7 @@ var crypton = {};
 
       step();
 
-      account.keypairIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
         JSON.stringify(keypair), keypairKey.toString(), {
           iv: account.keypairIv,
@@ -77,7 +70,7 @@ var crypton = {};
 
       step();
 
-      account.containerNameHmacKeyIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.containerNameHmacKeyIv = randomBytes(16);
       account.containerNameHmacKeyCiphertext = CryptoJS.AES.encrypt(
         containerNameHmacKey, symkey, {
           iv: account.containerNameHmacKeyIv,
@@ -88,7 +81,7 @@ var crypton = {};
 
       step();
 
-      account.hmacKeyIv = CryptoJS.SHA256(crypton.uuid()).toString().slice(0, 16);
+      account.hmacKeyIv = randomBytes(16);
       account.hmacKeyCiphertext = CryptoJS.AES.encrypt(
         account.hmacKey, symkey, {
           iv: account.hmacKeyIv,
@@ -97,6 +90,7 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
+      console.log(account);
       account.save(function () {
         callback(null, account);
       });
