@@ -14,15 +14,6 @@ var crypton = {};
     return CryptoJS.lib.WordArray.random(nbytes) //.toString(CryptoJS.enc.Latin1);
   }
 
-  crypton.uuid = (function () {
-    var privateCounter = 1;
-    var initialTimestamp = +new Date();
-    return function () {
-      privateCounter += 1;
-      return CryptoJS.SHA256(randomBytes(32) + initialTimestamp + privateCounter).toString();
-    }
-  })();
-
   crypton.generateAccount = function (username, passphrase, step, callback) {
     var account = new crypton.Account();
     account.username = username;
