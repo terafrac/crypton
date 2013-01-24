@@ -9,6 +9,9 @@ var uuid = require('node-uuid');
  * Create session cookie
  */
 app.post('/account', function (req, res) {
+  // TODO sanitize
+  var body = req.body;
+
   db.isUsernameTaken(req.body.username, function (taken) {
     if (taken) {
       res.send({
@@ -18,9 +21,7 @@ app.post('/account', function (req, res) {
       return;
     }
 
-
-    // TODO passing req.body is bad practice and a potential security threat
-    db.saveUser(req.body, function (err) {
+    db.saveUser(body, function (err) {
       if (err) {
         res.send({
           success: false,
@@ -49,6 +50,7 @@ app.post('/account/:username', function (req, res) {
       });
       return;
     }
+
     // create a challenge
     var randomString = crypto.randomBytes(32).toString('hex');
     var time = +new Date();
