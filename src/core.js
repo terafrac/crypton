@@ -37,14 +37,14 @@ var crypton = {};
       step();
 
       account.challengeKey = CryptoJS.PBKDF2(passphrase, account.saltChallenge, { 
-        keySize: 128 / 32,
+        keySize: 256 / 32,
         // iterations: 1000
       }).toString();
 
       step();
 
       var keypairKey = CryptoJS.PBKDF2(passphrase, account.saltKey, {
-        keySize: 128 / 32,
+        keySize: 256 / 32,
         // iterations: 1000
       });
 
