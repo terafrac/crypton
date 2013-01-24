@@ -17,13 +17,13 @@ var crypton = {};
   crypton.generateAccount = function (username, passphrase, step, callback) {
     var account = new crypton.Account();
     account.username = username;
-    account.hmacKey = randomBytes(32);
     account.saltKey = randomBytes(32);
     account.saltChallenge = randomBytes(32);
     console.log(account);
 
     var containerNameHmacKey = randomBytes(32);
     var symkey = randomBytes(32);
+    var hmacKey = randomBytes(32);
 
     step();
 
@@ -55,7 +55,7 @@ var crypton = {};
         keypair.serialize(), keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
-          // padding: TODO (must be length of multiple of 16)
+          padding: CryptoJS.pad.NoPadding
         }
       ).ciphertext.toString();
 
@@ -66,7 +66,7 @@ var crypton = {};
         containerNameHmacKey, symkey, {
           iv: account.containerNameHmacKeyIv,
           mode: CryptoJS.mode.CFB,
-          // padding: TODO (must be length of multiple of 16)
+          padding: CryptoJS.pad.NoPadding
         }
       ).ciphertext.toString();
 
@@ -74,15 +74,14 @@ var crypton = {};
 
       account.hmacKeyIv = randomBytes(16);
       account.hmacKeyCiphertext = CryptoJS.AES.encrypt(
-        account.hmacKey, symkey, {
+        hmacKey, symkey, {
           iv: account.hmacKeyIv,
           mode: CryptoJS.mode.CFB,
-          // padding: TODO (must be length of multiple of 16)
+          padding: CryptoJS.pad.NoPadding
         }
       ).ciphertext.toString();
 
       // convert WordArrays to strings for serialization
-      account.hmacKey = account.hmacKey.toString();
       account.saltChallenge = account.saltChallenge.toString();
       account.saltKey = account.saltKey.toString();
       account.keypairIv = account.keypairIv.toString();
