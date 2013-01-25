@@ -62,9 +62,10 @@ app.post('/account/:username', function (req, res) {
     var answerCipher = crypto.createCipheriv('aes-256-cfb8', challenge, aesIv);
     var timeValueCiphertext = answerCipher.update(time);
     var expectedAnswerDigest = crypto.createHash('sha256').update(timeValueCiphertext).digest();
-
+    var expectedAnswer = new Buffer(expectedAnswerDigest, 'binary').toString('hex');
+console.log(expectedAnswer, expectedAnswer);
     // store it
-    db.saveChallenge(, function (err, challengeId) {
+    db.saveChallenge(user, expectedAnswer, function (err, challengeId) {
       if (err) {
         res.send({
           success: false,
