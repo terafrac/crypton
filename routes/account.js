@@ -52,20 +52,36 @@ app.post('/account/:username', function (req, res) {
     }
 
     // create a challenge
-    var randomString = crypto.randomBytes(32).toString('hex');
-    var time = +new Date();
-    var aesIv = crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16);
-    var cipher = crypto.createCipheriv('aes-256-cfb', user.challengeKey, aesIv);
+    var randomString = crypto.randomBytes(32);
+    var time = +new Date() + ''; // must be cast to string for cipher
+    var aesIv = new Buffer(crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16), 'ascii');
+    var cipher = crypto.createCipheriv('aes-256-cfb', new Buffer(user.challengeKey, 'hex'), aesIv);
     var challenge = cipher.update(randomString);
-    console.log(randomString, time, aesIv, challenge);
 
     // compute the expected answer to the challenge
     var answerCipher = crypto.createCipheriv('aes-256-cfb8', challenge, aesIv);
     var timeValueCiphertext = answerCipher.update(time);
     var expectedAnswerDigest = crypto.createHash('sha256').update(timeValueCiphertext).digest();
-    console.log(answerCipher, timeValueCiphertext, expectedAnswerDigest);
 
     // store it
+    db.saveChallenge(, function (err, challengeId) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
+      res.send({
+        success: true,
+        challengeId: challengeId,
+        challenge: new Buffer(challenge, 'binary').toString('hex'),
+        saltChallenge: user.saltChallenge,
+        iv: aesIv.toString('hex'),
+        time: time
+      });
+    });
   });
 });
 
