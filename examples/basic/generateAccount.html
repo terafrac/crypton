@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <title>Crypton Basic Example</title>
+  <style>
+  #progress {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+<form id="userInput">
+  username: <input type="text" id="username" /><br />
+  password: <input type="password" id="password"><br />
+  <input type="submit" value="register" />
+</form>
+<div id="progress">
+  <progress value="0" max="2048" id="progBar"></progress>
+  <span id="status">initializing...</span>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="../../dist/crypton.js"></script>
+<script>
+$(document).ready(function () {
+  $('#userInput').submit(function (e) {
+    e.preventDefault();
+
+    $(this).hide();
+    $('#progress').show();
+
+    var steps = 0;
+    var progress = document.getElementById('progBar');
+    var status = document.getElementById('status');
+    var username = $('#username').val();
+    var password = $('#password').val()
+
+    crypton.generateAccount(username, password, function step () {
+      progress.value = ++steps;
+      status.innerHTML = steps;
+    }, function done (err, account) {
+      console.log(account);
+      progress.value = 2048;
+      status.innerHTML = 'done';
+    });
+  });
+});
+</script>
+</body>
+</html>
