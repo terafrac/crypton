@@ -53,19 +53,21 @@ app.post('/account/:username', function (req, res) {
 
     // create a challenge
     var randomString = crypto.randomBytes(32);
-    var time = +new Date() + ''; // must be cast to string for cipher
     var aesIv = new Buffer(crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16), 'ascii');
-    var cipher = crypto.createCipheriv('aes-256-cfb', new Buffer(user.challengeKey, 'hex'), aesIv);
-    var challenge = cipher.update(randomString);
+    var challengeCipher = crypto.createCipheriv('aes-256-cfb', new Buffer(user.challengeKey, 'hex'), aesIv);
+    var challenge = challengeCipher.update(randomString);
+    var time = +new Date() + ''; // must be cast to string for cipher
 
     // compute the expected answer to the challenge
-    var answerCipher = crypto.createCipheriv('aes-256-cfb8', challenge, aesIv);
-    var timeValueCiphertext = answerCipher.update(time);
-    var expectedAnswerDigest = crypto.createHash('sha256').update(timeValueCiphertext).digest();
-    var expectedAnswer = new Buffer(expectedAnswerDigest, 'binary').toString('hex');
-console.log(expectedAnswer, expectedAnswer);
+    var answerCipher = crypto.createCipheriv('aes-256-cfb8', randomString, aesIv);
+    var expectedAnswer = answerCipher.update(time);
+    var expectedAnswerDigest = crypto.createHash('sha256').update(expectedAnswer).digest();
+    var expectedAnswerDigestHex = new Buffer(expectedAnswerDigest, 'binary').toString('hex');
+
+    // XXX why 'aes-256-cfb' for challengeCipher but 'aes-256-cfb8' for answerCipher?
+
     // store it
-    db.saveChallenge(user, expectedAnswer, function (err, challengeId) {
+    db.saveChallenge(user, expectedAnswerDigestHex, function (err, challengeId) {
       if (err) {
         res.send({
           success: false,
@@ -76,7 +78,7 @@ console.log(expectedAnswer, expectedAnswer);
 
       res.send({
         success: true,
-        challengeId: challengeId,
+        challengeId: challengeId, // TODO public_id(challengeId)
         challenge: new Buffer(challenge, 'binary').toString('hex'),
         saltChallenge: user.saltChallenge,
         iv: aesIv.toString('hex'),

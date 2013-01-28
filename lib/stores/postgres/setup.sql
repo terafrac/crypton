@@ -80,19 +80,19 @@ CREATE TABLE base_keyring (
     hmac_key_ciphertext bytea,
     deletion_time timestamp
     constraint challenge_key_len 
-        check (length(challenge_key, 'SQL_ASCII')=32)
+        check (octet_length(challenge_key)=32)
     constraint salt_key_len 
-        check (length(salt_key, 'SQL_ASCII')=32)
+        check (octet_length(salt_key)=32)
     constraint keypair_iv_len 
-        check (length(keypair_iv, 'SQL_ASCII')=16)
+        check (octet_length(keypair_iv)=16)
     constraint container_name_hmac_key_iv_len 
-        check (length(container_name_hmac_key_iv, 'SQL_ASCII')=16)
+        check (octet_length(container_name_hmac_key_iv)=16)
     constraint container_name_hmac_key_ciphertext_len 
-        check (length(container_name_hmac_key_ciphertext, 'SQL_ASCII')=32)
+        check (octet_length(container_name_hmac_key_ciphertext)=32)
     constraint hmac_key_iv_len 
-        check (length(hmac_key_iv, 'SQL_ASCII')=16)
+        check (octet_length(hmac_key_iv)=16)
     constraint hmac_key_ciphertext_len 
-        check (length(hmac_key_ciphertext, 'SQL_ASCII')=32)
+        check (octet_length(hmac_key_ciphertext)=32)
 );
 
 COMMENT ON TABLE base_keyring IS 
@@ -130,7 +130,7 @@ CREATE TABLE challenge (
     creation_time timestamp not null default current_timestamp,
     expected_answer_digest bytea
     constraint expected_answer_digest_len 
-        check (length(expected_answer_digest, 'SQL_ASCII')=32)
+        check (octet_length(expected_answer_digest)=32)
 );
 
 COMMENT ON TABLE challenge IS 
@@ -204,7 +204,7 @@ create table container_session_key (
     signature bytea not null,
     supercede_time timestamp
     constraint signature_len 
-        check (length(signature, 'SQL_ASCII')=32)
+        check (octet_length(signature)=32)
 );
 CREATE UNIQUE INDEX container_session_key_active_idx 
     ON container_session_key (container_id)
@@ -269,7 +269,7 @@ create table container_record (
     hmac bytea not null,
     payload_ciphertext bytea not null
     constraint hmac_len 
-        check (length(hmac, 'SQL_ASCII')=32)
+        check (octet_length(hmac)=32)
 );
 
 COMMENT ON TABLE container_record IS 
@@ -361,7 +361,7 @@ create table message (
     payload_ciphertext bytea not null,
     deletion_time timestamp
     constraint max_header_len 
-        check (length(header_ciphertext, 'SQL_ASCII') < 4096)
+        check (octet_length(header_ciphertext) < 4096)
 );
 
 
@@ -505,7 +505,7 @@ create table transaction_add_container_session_key (
     signature bytea not null,
     supercede_key int8,
     constraint signature_len 
-        check (length(signature, 'SQL_ASCII')=32)
+        check (octet_length(signature)=32)
 );
 
 create table transaction_add_container_session_key_share (
@@ -535,7 +535,7 @@ create table transaction_add_container_record (
     hmac bytea not null,
     payload_ciphertext bytea not null,
     constraint hmac_len 
-        check (length(hmac, 'SQL_ASCII')=32)
+        check (octet_length(hmac)=32)
 );
 
 create table transaction_add_message (
