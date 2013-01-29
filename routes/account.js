@@ -89,6 +89,38 @@ app.post('/account/:username', function (req, res) {
 });
 
 /*
+ * Authorize with server
+ */
+app.post('/account/:username/answer', function (req, res) {
+  var challengeId = req.body.challengeId;
+  var answer = req.body.answer;
+
+  if (!challengeId || !answer) {
+    res.send({
+      success: false,
+      error: 'Missing required fields'
+    });
+    return;  
+  }
+
+  db.getChallenge(challengeId, function (err, challenge) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;  
+    }
+
+    console.log(challenge.expectedAnswerDigest, answer, challenge.expectedAnswerDigest == answer);
+
+    res.send({
+      success: true
+    });
+  });
+});
+
+/*
  * Change the password for account
  */
 app.post('/account/:username/password', function (req, res) {
