@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Crypton Account Generation Example</title>
+  <title>Crypton Authorization Example</title>
   <style>
   #progress {
     display: none;
@@ -15,7 +15,8 @@
   <input type="submit" value="register" />
 </form>
 <div id="progress">
-  <span id="status">waiting for challenge...</span>
+  <progress value="0" max="2048" id="progBar"></progress>
+  <span id="status">initializing...</span>
 </div>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="../../dist/crypton.js"></script>
@@ -34,11 +35,13 @@ $(document).ready(function () {
     var username = $('#username').val();
     var password = $('#password').val()
 
-    crypton.generateAccount(username, password, function step () {
+    crypton.authorize(username, password, function step () {
+      console.log(arguments);
       progress.value = ++steps;
       status.innerHTML = steps;
     }, function done (err, account) {
       console.log(account);
+      console.log(arguments);
       progress.value = 2048;
       status.innerHTML = 'done';
     });

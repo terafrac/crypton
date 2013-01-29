@@ -51,13 +51,13 @@ var crypton = {};
       step();
 
       account.keypairIv = randomBytes(16);
-      account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
-        keypair.serialize(), keypairKey, {
-          iv: account.keypairIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.NoPadding
+      account.keypairserializedciphertext = cryptojs.aes.encrypt(
+        keypair.serialize(), keypairkey, {
+          iv: account.keypairiv,
+          mode: cryptojs.mode.cfb,
+          padding: cryptojs.pad.nopadding
         }
-      ).ciphertext.toString();
+      ).ciphertext.tostring();
 
       step();
 
@@ -94,8 +94,59 @@ var crypton = {};
     });
   };
 
-  crypton.authorize = function () {
+  crypton.authorize = function (username, passphrase, callback) {
+    superagent.post(crypton.url() + '/account/' + username)
+      //.send(this.serialize())
+      .end(function (res) {
+        if (!res.body || res.body.success != true) {
+          callback(res.body.error);
+          return;
+        }
 
+        var body = res.body;
+        var iv = CryptoJS.enc.Hex.parse(body.iv);
+        var saltChallenge = CryptoJS.enc.Hex.parse(body.saltChallenge);
+        var challengeKey = CryptoJS.PBKDF2(passphrase, saltChallenge, { 
+          // keySize: 256 / 32,
+          // iterations: 1000
+        });
+
+        var challenge = CryptoJS.AES.decrypt(
+          body.challenge, challengeKey, {
+            iv: iv,
+            mode: CryptoJS.mode.CFB,
+            padding: CryptoJS.pad.NoPadding
+          }
+        );
+
+        var timeValueCiphertext = CryptoJS.AES.encrypt(
+          body.time, challenge, {
+            iv: iv,
+            mode: CryptoJS.mode.CFB,
+            padding: CryptoJS.pad.NoPadding
+          }
+        ).ciphertext.toString();
+
+        console.log(challengeKey, challenge, timeValueCiphertext);
+
+        var response = {
+          challengeId: body.challengeId,
+          answer: timeValueCiphertext
+        }
+
+        superagent.post(crypton.url() + '/account/' + username + '/answer')
+          .send(response)
+          .end(function (res) {
+            if (!res.body || res.body.success != true) {
+              callback(res.body.error);
+              return;
+            }
+
+            console.log(res.body);
+            callback();
+          });
+      }
+    );
   };
 
   crypton.resurrect = function () {
