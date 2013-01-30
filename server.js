@@ -14,6 +14,8 @@ var app = process.app = module.exports = express();
 
 app.config = require('./lib/config')(program.config);
 app.datastore = require('./lib/storage');
+app.id_translator = require("id_translator")
+                    .load_id_translator(process.env.ID_TRANSLATION_KEYS);
 
 var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
