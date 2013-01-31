@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
+
 var program = require('commander');
+var util = require('util');
 
 program
   .version('0.0.1')
@@ -12,10 +14,17 @@ program
 var express = require('express');
 var app = process.app = module.exports = express();
 
-app.config = require('./lib/config')(program.config);
+if (process.env.NODE_ENV.toLowerCase() === 'test') {
+    app.config = require('./lib/config')('config.test.json');
+} else {
+    util.log(util.inspect(process.env));
+    process.exit(1);
+    app.config = require('./lib/config')(program.config);
+}
+
 app.datastore = require('./lib/storage');
 app.id_translator = require("id_translator")
-                    .load_id_translator(process.env.ID_TRANSLATION_KEYS);
+                    .load_id_translator(app.config.id_translator.key_file);
 
 var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -32,4 +41,3 @@ require('./routes');
 if (!module.parent) {
   app.listen(program.port);
 }
-
