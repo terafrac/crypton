@@ -1,12 +1,12 @@
 {
-  "author": "SpiderOak (http://spideroak.com/)",
+  "author": "SpiderOak (https://spideroak.com/)",
   "name": "crypton",
   "description": "A zero-knowledge application framework",
   "version": "0.0.0",
   "homepage": "http://crypton.io",
   "repository": {
     "type": "git",
-    "url": "git://github.com/SpiderOak/crypton.git"
+    "url": "git://github.com/SpiderOak/crypton-server.git"
   },
   "engines": {
     "node": "~0.8.1"
@@ -20,8 +20,13 @@
     "express": "3.x",
     "commander": "1.1.x",
     "pg": "0.11.x",
-    "node-uuid": "1.4.x"
+    "node-uuid": "1.4.x",
+    "mocha": "1.8.x",
+    "should": "1.2.x"
   },
   "devDependencies": {},
   "optionalDependencies": {}
+  "scripts": {
+    "test": "NODE_ENV=test mocha"
+  },
 }
