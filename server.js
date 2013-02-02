@@ -3,6 +3,7 @@
 
 var program = require('commander');
 var util = require('util');
+var fs = require('fs');
 
 program
   .version('0.0.1')
@@ -17,8 +18,6 @@ var app = process.app = module.exports = express();
 if (process.env.NODE_ENV.toLowerCase() === 'test') {
     app.config = require('./lib/config')('config.test.json');
 } else {
-    util.log(util.inspect(process.env));
-    process.exit(1);
     app.config = require('./lib/config')(program.config);
 }
 
@@ -33,11 +32,20 @@ var allowCrossDomain = function (req, res, next) {
   next();
 }
 
+app.use(express.logger({stream: process.stdout}));
+util.log("Static from " + __dirname + '/public');
+app.use('/public', express.static(__dirname + '/public'));
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
 
+// var logFile = fs.createWriteStream('/tmp/crypton_server.log', {flags: 'a'});
+
 require('./routes');
 
+var start = app.start = function start () {
+    app.listen(program.port);
+}
+
 if (!module.parent) {
-  app.listen(program.port);
+    start();
 }
