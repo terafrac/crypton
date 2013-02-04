@@ -79,39 +79,3 @@ if [[ ! -L public/crypton.js ]]; then
 fi
 ls -lh public/crypton.js
 
-#client_src_target=$BIN_DIR/../client
-#if [[ ! -d $CLIENT_SRC_DIR ]]; then
-#    echo "$CLIENT_SRC_DIR does not exist"
-#    exit 1
-#fi
-#rm -vrf $client_src_target
-#if [[ ! -d $client_src_target ]]; then mkdir $client_src_target ; fi
-#for f in $CLIENT_SRC_DIR/* ; do
-#    if [[ ! -f $f ]]; then
-#        continue
-#    fi
-#    f_basename="$(basename $f)"
-#    f_target="$client_src_target/$f_basename"
-#    if [[ ! -e $f_target || $f -nt $f_target ]]; then
-#        if [[ -e $f_target ]]; then rm -v $f_target; fi
-#        head $f | grep "^var crypton" || { 
-#            echo -e "var crypton = {};\n" >> $f_target 
-#        }
-#        echo -e "var CryptoJS = require(\"cryptojs\");\n" >> $f_target 
-#        cat $f >> $f_target
-#        echo -e "\n\nmodule.exports = crypton;" >> $f_target
-#    fi
-#done
-
-#client_core_file=$BIN_DIR/../../crypton-client/dist/crypton.js
-#client_lib_file=$BIN_DIR/../lib/client.js
-#if [[ ! -e $client_core_file ]]; then
-#    echo "Could not find client core file"
-#    exit 1
-#fi
-#if [[ ! -e $client_lib_file || $client_core_file -nt $client_lib_file ]]; then
-#    cp -v $client_core_file $client_lib_file
-#    echo -e "\n\nmodule.exports = crypton;" >> $client_lib_file
-#fi
-#
-#

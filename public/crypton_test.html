@@ -1,0 +1,27 @@
+<!-- 
+
+Loader for driving client side tests.
+
+This is the page the browser is sent to for each test.  The server will return
+different content for the config.js and/or test.js.
+
+-->
+<html>
+    <head>
+        <script type="text/javascript" src="/public/crypton.js"></script>
+        <script type="text/javascript" src="/client_test/config.js"></script>
+        <script type="text/javascript">
+            crypton.host = crypton_test_config.host;
+            crypton.port = crypton_test_config.port;
+            console.log("client starts " + crypton_test_config.name);
+        </script>
+        <script type="text/javascript" src="/client_test/test.js"></script>
+        <script type="text/javascript">
+            console.log("client end " + crypton_test_config.name);
+        </script>
+    </head>
+    <body>
+        <p id="hello_world">Hello world.</p>
+    </body>
+</html>
+
