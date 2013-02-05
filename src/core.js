@@ -51,13 +51,13 @@ var crypton = {};
       step();
 
       account.keypairIv = randomBytes(16);
-      account.keypairserializedciphertext = cryptojs.aes.encrypt(
-        keypair.serialize(), keypairkey, {
-          iv: account.keypairiv,
-          mode: cryptojs.mode.cfb,
-          padding: cryptojs.pad.nopadding
+      account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
+        keypair.serialize(), keypairKey, {
+          iv: account.keypairIv,
+          mode: CryptoJS.mode.CFB,
+          padding: CryptoJS.pad.NoPadding
         }
-      ).ciphertext.tostring();
+      ).ciphertext.toString();
 
       step();
 
@@ -96,7 +96,6 @@ var crypton = {};
 
   crypton.authorize = function (username, passphrase, callback) {
     superagent.post(crypton.url() + '/account/' + username)
-      //.send(this.serialize())
       .end(function (res) {
         if (!res.body || res.body.success != true) {
           callback(res.body.error);
@@ -107,12 +106,18 @@ var crypton = {};
         var iv = CryptoJS.enc.Hex.parse(body.iv);
         var saltChallenge = CryptoJS.enc.Hex.parse(body.saltChallenge);
         var challengeKey = CryptoJS.PBKDF2(passphrase, saltChallenge, { 
-          // keySize: 256 / 32,
+          keySize: 256 / 32,
           // iterations: 1000
         });
 
+        var encrypted = CryptoJS.lib.CipherParams.create({
+          ciphertext: CryptoJS.enc.Hex.parse(body.challenge),
+          salt: saltChallenge,
+          iv: iv
+        });
+
         var challenge = CryptoJS.AES.decrypt(
-          body.challenge, challengeKey, {
+          encrypted, challengeKey, {
             iv: iv,
             mode: CryptoJS.mode.CFB,
             padding: CryptoJS.pad.NoPadding
@@ -127,11 +132,11 @@ var crypton = {};
           }
         ).ciphertext.toString();
 
-        console.log(challengeKey, challenge, timeValueCiphertext);
+        var timeValueCiphertextDigest = CryptoJS.SHA256(timeValueCiphertext).toString();
 
         var response = {
           challengeId: body.challengeId,
-          answer: timeValueCiphertext
+          answer: timeValueCiphertextDigest
         }
 
         superagent.post(crypton.url() + '/account/' + username + '/answer')
