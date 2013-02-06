@@ -22,6 +22,7 @@ var base_test_config = {
     "host": crypton_host,
     "port": crypton_port
 };
+var client_complete_callback = null;
 
 // send the configuration for the current test
 app.get("/client_test/config.js", function (req, res) {
@@ -50,6 +51,12 @@ app.get("/client_test/test.js", function (req, res) {
     fs.readFile(filepath, null, readfile_callback);
     util.log("read scheduled");
     return readfile_callback;
+});
+
+app.get("/client_test/COMPLETE", function (req, res) {
+    if (!client_complete_callback) {
+        util.log("COMPLETE called w/o callback");
+    }
 });
 
 // return the abs path to the js file for a named client test
@@ -97,6 +104,7 @@ describe("test a browser interacting with a crypton server", function() {
     beforeEach(function() {
         // reset the test configuration before every test
         test_config = _.clone(base_test_config);
+        client_complete_callback = null;
     });
     it("examine crypton client object", function (done) {
         // run in the context of the crypton webpage
@@ -165,6 +173,9 @@ describe("test a browser interacting with a crypton server", function() {
             result.host.should.equal(crypton_host);
             result.port.should.equal(crypton_port);
             result.name.should.equal(test_config.name);
+            // done();
+        };
+        var complete_cb = function complete_cb() {
             done();
         };
         browser(done, crypton_test_url, context_cb, result_cb);

@@ -5,7 +5,20 @@ var logstep = function logstep() {
 
 var generate_cb = function generate_cb() {
     console.log("generate_cb start");
+    var agent = window.superagent;
+    agent.request("/client_test/COMPLETE", function (res) {
+        console.log("request for COMPLETE complete")
+    });
+    console.log("requset for COMPLETE starting");
 };
+
+/*
+try {
+    console.log(window.superagent);
+} catch (err) {
+    console.log("client pre error");
+}
+*/
 
 crypton_test_result.success = false;
 try {
