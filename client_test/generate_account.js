@@ -1,38 +1,53 @@
+(function () {
 
-var logstep = function logstep() {
-    console.log("step");
-}
+    var logstep = function logstep() {
+        console.log("step");
+    };
 
-var generate_cb = function generate_cb() {
-    console.log("generate_cb start");
-    var agent = window.superagent;
-    agent.request("/client_test/COMPLETE", function (res) {
-        console.log("request for COMPLETE complete")
-    });
-    console.log("requset for COMPLETE starting");
-};
+    var signal_complete = function signal_complete() {
+        console.log("signal_complete start");
+        var request = window.superagent;
+        try {
+            request.get("/client_test/COMPLETE").end(function (res) {
+                console.log("request for COMPLETE complete");
+                crypton_test_result.complete = 'finished';
+            });
+        } catch (err) {
+            console.log("signal_complete request error");
+            console.log(err);
+        }
+        console.log("request for COMPLETE starting");
+        crypton_test_result.complete = 'starting';
+    };
 
-/*
-try {
-    console.log(window.superagent);
-} catch (err) {
-    console.log("client pre error");
-}
-*/
+    var complete_cb = function complete_cb(err, account) {
+        console.log("complete_cb start");
 
-crypton_test_result.success = false;
-try {
-    crypton.generateAccount(crypton_test_config.username, 
-                            crypton_test_config.passphrase, 
-                            logstep, 
-                            generate_cb, 
-                            {});
-    crypton_test_result.success = true;
-} catch (err) {
-    console.log("client error");
-    //console.log(err);
-} finally {
-    console.log("client finally");
-}
+        if (err) { 
+            crypton_test_result.success = false;
+            console.log("error given to complete_cb");
+            console.log(err); 
+        } else {
+            crypton_test_result.success = true;
+        }
+
+        signal_complete();
+    };
+
+    try {
+        crypton_test_result.success = null;
+        crypton.generateAccount(crypton_test_config.username, 
+                                crypton_test_config.passphrase, 
+                                logstep, 
+                                complete_cb, 
+                                {});
+    } catch (err) {
+        console.log("client error");
+        //console.log(err);
+    } finally {
+        console.log("client finally");
+    }
+
+}());
 
 console.log("test.js end");

@@ -3,6 +3,7 @@ var should = require("should");
 var app = require("../server");
 var fs = require("fs");
 var _ = require("underscore");
+var Q = require("q");
 
 var phantom = require('node-phantom');
 
@@ -54,9 +55,12 @@ app.get("/client_test/test.js", function (req, res) {
 });
 
 app.get("/client_test/COMPLETE", function (req, res) {
+    res.end("ok");
     if (!client_complete_callback) {
-        util.log("COMPLETE called w/o callback");
+        util.log("WARN: COMPLETE called w/o callback");
+        return;
     }
+    client_complete_callback();
 });
 
 // return the abs path to the js file for a named client test
@@ -72,7 +76,10 @@ var new_test_username = function new_test_username() {
 
 // utility function to run a callback in the context of a browser at URL, then
 // run a result callback.  will instead run run done(err) if we fail early.
-var browser = function browser(done, url, context_cb, result_cb) {
+var browser = function browser(done, url, context_cb, result_cb, options) {
+    if (!options) {
+        options = {};
+    }
     phantom.create(function(err, ph) { 
         if (err) { return done(err); }
         ph.createPage(function(err, page) {
@@ -86,6 +93,22 @@ var browser = function browser(done, url, context_cb, result_cb) {
                 if (err || result !== 'success') {
                     return done([err, result]);
                 }
+
+                if (options.complete_promise) {
+                    // wait to evaluate our function in browser context until
+                    // we are signaled that some action is complete.
+                    var promise_resolved = function promise_resolved() {
+                        util.log("page complete promise resolved");
+                        page.evaluate(context_cb, result_cb);
+                    };
+                    var promise_rejected = function promise_rejected() {
+                        util.log("page complete promise rejected"); 
+                        done();
+                    };
+                    options.complete_promise.then(promise_resolved, promise_rejected);
+                    return;
+                }
+
                 page.evaluate(context_cb, result_cb);
             });
         });
@@ -143,7 +166,7 @@ describe("test a browser interacting with a crypton server", function() {
         var context_cb = function context_cb() {
             //console.log(JSON.stringify(crypton_test_config));
             //return { "done": crypton_test_config.name }; 
-            return crypton_test_config
+            return crypton_test_config;
         };
         var result_cb = function result_cb(err, result) {
             //util.log("result starting");
@@ -156,7 +179,68 @@ describe("test a browser interacting with a crypton server", function() {
         };
         browser(done, crypton_test_url, context_cb, result_cb);
     });
-    it.only("generate an account", function (done) {
+    it("round trip data return from browser", function (done) {
+        // this tests that we can start a browser instance, get it to load our
+        // test URL, load our test javascript code, and from there trigger a
+        // GET request to /client_test/COMPLETE to signify that we are done.
+        test_config.name = "browser_round_trip";
+        fs.existsSync(client_test_filepath(test_config.name)).should.be.true;
+
+        client_complete_callback = function client_complete_callback () {
+            util.log("browser posted back to COMPLETE");
+            done();
+        };
+        var context_cb = function context_cb() {
+            //console.log(JSON.stringify(crypton_test_config));
+            //return { "done": crypton_test_config.name }; 
+            return crypton_test_result;
+        };
+        var result_cb = function result_cb(err, result) {
+            util.log("result starting");
+            util.log(util.inspect(result));
+            if (err) { return done(err); }
+        };
+        var complete_cb = function complete_cb() {
+            util.log("COMPLETE signaled");
+            done();
+        };
+        browser(done, crypton_test_url, context_cb, result_cb);
+    });
+    it("wait on COMPLETE signal to collect browser results", function (done) {
+        // this tests that we can start a browser instance, get it to load our
+        // test URL, load our test javascript code, and from there trigger a
+        // GET request to /client_test/COMPLETE to signify that we are done.
+
+        // uses the same test code as above. the difference is we don't call
+        // the browser context function until after the browser has signaled
+        // complete.
+        test_config.name = "browser_round_trip";
+        fs.existsSync(client_test_filepath(test_config.name)).should.be.true;
+
+        var complete_defer = Q.defer();
+
+        client_complete_callback = function client_complete_callback () {
+            util.log("browser posted back to COMPLETE");
+            complete_defer.resolve();
+        };
+
+        // browser won't fire this until complete_defer is resolved
+        var context_cb = function context_cb() {
+            // retrieve the results object
+            return crypton_test_result;
+        };
+
+        var result_cb = function result_cb(err, result) {
+            // log the results object
+            util.log("result starting");
+            util.log(util.inspect(result));
+            if (err) { return done(err); }
+            done();
+        };
+        var options = { complete_promise: complete_defer.promise };
+        browser(done, crypton_test_url, context_cb, result_cb, options);
+    });
+    it("generate an account", function (done) {
         test_config.name = "generate_account";
         test_config.username = new_test_username();
         test_config.passphrase = "password";
@@ -164,7 +248,7 @@ describe("test a browser interacting with a crypton server", function() {
         var context_cb = function context_cb() {
             //console.log(JSON.stringify(crypton_test_config));
             //return { "done": crypton_test_config.name }; 
-            return crypton_test_config
+            return crypton_test_config;
         };
         var result_cb = function result_cb(err, result) {
             //util.log("result starting");
