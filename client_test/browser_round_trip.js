@@ -8,6 +8,7 @@
         try {
             request.get("/client_test/COMPLETE").end(function (res) {
                 console.log("request for COMPLETE complete");
+                crypton_test_result.success = true;
                 crypton_test_result.complete = 'finished';
             });
         } catch (err) {
@@ -18,6 +19,7 @@
         crypton_test_result.complete = 'starting';
     };
     window.setTimeout(signal_complete, 100);
+    crypton_test_result.success = null;
     crypton_test_result.complete = 'scheduled';
     console.log("test.js signal_complete scheduled");
 }());

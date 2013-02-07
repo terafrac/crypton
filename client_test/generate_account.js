@@ -30,7 +30,6 @@
         } else {
             crypton_test_result.success = true;
         }
-
         signal_complete();
     };
 

@@ -38,19 +38,19 @@ app.get("/client_test/config.js", function (req, res) {
 // send the code for the current test
 app.get("/client_test/test.js", function (req, res) {
     var filepath = client_test_filepath(test_config.name);
-    util.log("scheduling read for filepath: " + filepath);
+    //util.log("scheduling read for filepath: " + filepath);
     var readfile_callback = function readfile_callback (err, data) {
         if (err) {
             util.log("could not read: ", err); 
             process.exit(1); 
         }
-        util.log("did read filepath " + filepath);
+        //util.log("did read filepath " + filepath);
         res.setHeader('Content-Type', 'application/javascript');
         res.setHeader('Content-Length', data.length);
         res.end(data);
     };
     fs.readFile(filepath, null, readfile_callback);
-    util.log("read scheduled");
+    //util.log("read scheduled");
     return readfile_callback;
 });
 
@@ -117,6 +117,7 @@ var browser = function browser(done, url, context_cb, result_cb, options) {
 };
 
 describe("test a browser interacting with a crypton server", function() {
+    this.timeout(500000);
     before(function () { 
         util.log("before");
         app.start();     
@@ -240,28 +241,32 @@ describe("test a browser interacting with a crypton server", function() {
         var options = { complete_promise: complete_defer.promise };
         browser(done, crypton_test_url, context_cb, result_cb, options);
     });
-    it("generate an account", function (done) {
+    it.only("generate an account", function (done) {
         test_config.name = "generate_account";
         test_config.username = new_test_username();
         test_config.passphrase = "password";
         fs.existsSync(client_test_filepath(test_config.name)).should.be.true;
+
+        var complete_defer = Q.defer();
+
+        client_complete_callback = function client_complete_callback () {
+            util.log("browser posted back to COMPLETE");
+            complete_defer.resolve();
+        };
+
         var context_cb = function context_cb() {
             //console.log(JSON.stringify(crypton_test_config));
             //return { "done": crypton_test_config.name }; 
-            return crypton_test_config;
+            return crypton_test_result;
         };
+
         var result_cb = function result_cb(err, result) {
-            //util.log("result starting");
+            util.log("result starting");
             if (err) { return done(err); }
-            //util.log(util.inspect(result));
-            result.host.should.equal(crypton_host);
-            result.port.should.equal(crypton_port);
-            result.name.should.equal(test_config.name);
-            // done();
-        };
-        var complete_cb = function complete_cb() {
+            util.log(util.inspect(result));
             done();
         };
-        browser(done, crypton_test_url, context_cb, result_cb);
+        var options = { complete_promise: complete_defer.promise };
+        browser(done, crypton_test_url, context_cb, result_cb, options);
     });
 });
