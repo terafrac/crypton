@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
+
 var program = require('commander');
+var util = require('util');
+var fs = require('fs');
 
 program
   .version('0.0.1')
@@ -12,8 +15,15 @@ program
 var express = require('express');
 var app = process.app = module.exports = express();
 
-app.config = require('./lib/config')(program.config);
+if (process.env.NODE_ENV.toLowerCase() === 'test') {
+    app.config = require('./lib/config')('config.test.json');
+} else {
+    app.config = require('./lib/config')(program.config);
+}
+
 app.datastore = require('./lib/storage');
+app.id_translator = require("id_translator")
+                    .load_id_translator(app.config.id_translator.key_file);
 
 var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -22,12 +32,20 @@ var allowCrossDomain = function (req, res, next) {
   next();
 }
 
+app.use(express.logger({stream: process.stdout}));
+util.log("Static from " + __dirname + '/public');
+app.use('/public', express.static(__dirname + '/public'));
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
 
+// var logFile = fs.createWriteStream('/tmp/crypton_server.log', {flags: 'a'});
+
 require('./routes');
 
-if (!module.parent) {
-  app.listen(program.port);
+var start = app.start = function start () {
+    app.listen(program.port);
 }
 
+if (!module.parent) {
+    start();
+}
