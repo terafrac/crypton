@@ -114,10 +114,35 @@ app.post('/account/:username/answer', function (req, res) {
       return;  
     }
 
-    console.log(challenge.expectedAnswerDigest, answer, challenge.expectedAnswerDigest == answer);
+    db.getUser(req.params.username, function (err, user) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
 
-    res.send({
-      success: true
+      if (challenge.accountId != user.accountId) {
+        res.send({
+          success: false,
+          error: 'Incorrect username'
+        });
+        return;
+      }
+
+      if (challenge.expectedAnswerDigest != answer) {
+        res.send({
+          success: false,
+          error: 'Incorrect password'
+        });
+        return;
+      }
+
+      res.send({
+        success: true,
+        account: user
+      });
     });
   });
 });
