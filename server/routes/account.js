@@ -55,21 +55,20 @@ app.post('/account/:username', function (req, res) {
 
     // create a challenge
     var randomString = crypto.randomBytes(32);
-    var aesIv = new Buffer(crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16), 'ascii');
-    var challengeCipher = crypto.createCipheriv('aes-256-cfb', new Buffer(user.challengeKey, 'hex'), aesIv);
-    var challenge = challengeCipher.update(randomString);
-    var time = +new Date() + ''; // must be cast to string for cipher
+    var ivRaw = crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16);
+    var iv = new Buffer(ivRaw, 'binary');
+    var key = new Buffer(user.challengeKey, 'hex');
+    var challengeCipher = crypto.createCipheriv('aes-256-cfb', key, iv);
+    var challenge = challengeCipher.update(randomString, 'binary', 'hex');
 
     // compute the expected answer to the challenge
-    var answerCipher = crypto.createCipheriv('aes-256-cfb8', randomString, aesIv);
-    var expectedAnswer = answerCipher.update(time);
-    var expectedAnswerDigest = crypto.createHash('sha256').update(expectedAnswer).digest();
-    var expectedAnswerDigestHex = new Buffer(expectedAnswerDigest, 'binary').toString('hex');
-
-    // XXX why 'aes-256-cfb' for challengeCipher but 'aes-256-cfb8' for answerCipher?
+    var time = +new Date() + ''; // must be cast to string for cipher
+    var answerCipher = crypto.createCipheriv('aes-256-cfb', randomString, iv);
+    var expectedAnswer = answerCipher.update(time, 'binary', 'hex');
+    var expectedAnswerDigest = crypto.createHash('sha256').update(expectedAnswer).digest('hex');
 
     // store it
-    db.saveChallenge(user, expectedAnswerDigestHex, function (err, challengeId) {
+    db.saveChallenge(user, expectedAnswerDigest, function (err, challengeId) {
       if (err) {
         res.send({
           success: false,
@@ -81,9 +80,9 @@ app.post('/account/:username', function (req, res) {
       res.send({
         success: true,
         challengeId: challengeId, // TODO public_id(challengeId)
-        challenge: new Buffer(challenge, 'binary').toString('hex'),
+        challenge: challenge,
         saltChallenge: user.saltChallenge,
-        iv: aesIv.toString('hex'),
+        iv: iv.toString('hex'),
         time: time
       });
     });
@@ -131,6 +130,7 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
+console.log(challenge.expectedAnswerDigest, answer);
       if (challenge.expectedAnswerDigest != answer) {
         res.send({
           success: false,

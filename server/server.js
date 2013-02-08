@@ -16,12 +16,7 @@ program
 var express = require('express');
 var app = process.app = module.exports = express();
 
-if (process.env.NODE_ENV.toLowerCase() === 'test') {
-  app.config = require('./lib/config')(__dirname + '/config.test.json');
-} else {
-  app.config = require('./lib/config')(program.config);
-}
-
+app.config = require('./lib/config')(program.config);
 app.datastore = require('./lib/storage');
 app.id_translator = require("id_translator")
                     .load_id_translator(app.config.id_translator.key_file);
