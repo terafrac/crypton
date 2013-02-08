@@ -7,7 +7,9 @@
     "host": "localhost",
     "port": 5432
   },
+  "default_key_size": 32,
   "id_translator": {
     "key_file": "/dev/urandom"
-  }
+  },
+  "cookie_secret_file": "/dev/urandom"
 }
