@@ -5,7 +5,6 @@ var util = require('util');
 var fs = require('fs');
 var connect = require('connect');
 var assert = require('assert');
-var misc = require('./lib/misc');
 
 program
   .version('0.0.1')
