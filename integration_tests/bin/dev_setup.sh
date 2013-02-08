@@ -4,11 +4,17 @@ set -e
 set -x
 
 BIN_DIR=$(cd $(dirname $0) ; readlink -f $(pwd))
-SRC_DIR=$(cd $BIN_DIR ; cd .. ; pwd)
-CLIENT_SRC_DIR=$(cd $SRC_DIR/../crypton-client ; pwd)
+TEST_DIR=$(cd $BIN_DIR ; cd .. ; pwd)
+CLIENT_SRC_DIR=$(cd $TEST_DIR/../client ; pwd)
+SERVER_SRC_DIR=$(cd $TEST_DIR/../server ; pwd)
 
 if [[ ! -d $CLIENT_SRC_DIR ]]; then
     echo "Did not find crypton-client src in $CLIENT_SRC_DIR"
+    exit 1
+fi
+
+if [[ ! -f $SERVER_SRC_DIR/server.js ]]; then
+    echo "Did not find server.js in $SERVER_SRC_DIR"
     exit 1
 fi
 
@@ -49,7 +55,7 @@ echo "select * from pg_tables" \
     | psql -h localhost -U crypton_test_user crypton_test \
     | grep "account" || {
         psql -h localhost -U crypton_test_user crypton_test < \
-            $BIN_DIR/../lib/stores/postgres/setup.sql
+            $BIN_DIR/../../server/lib/stores/postgres/setup.sql
       }
 
 # add crypton-dev.local to /etc/hosts
@@ -71,11 +77,4 @@ if [[ $compile = "1" ]]; then
     ./compile.sh --once
 fi
 popd
-
-# symlink client source into our static dir
-if [[ ! -d $SRC_DIR/public ]]; then mkdir -v $SRC_DIR/public ; fi
-if [[ ! -L public/crypton.js ]]; then
-    ln -vsf $CLIENT_SRC_DIR/dist/crypton.js $SRC_DIR/public/crypton.js
-fi
-ls -lh public/crypton.js
 

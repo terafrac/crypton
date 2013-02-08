@@ -1,16 +1,19 @@
+var app = require("../../server/server");
+
 var util = require("util");
+var path = require("path");
 var should = require("should");
-var app = require("../server");
 var fs = require("fs");
 var _ = require("underscore");
 var Q = require("q");
+var express = require('express');
 
 var phantom = require('node-phantom');
 
 var crypton_host = "crypton-dev.local";
 var crypton_port = "2013";
-var crypton_page = "/public/crypton.html"; 
-var crypton_test_page = "/public/crypton_test.html"; 
+var crypton_page = "/test_static/crypton.html"; 
+var crypton_test_page = "/test_static/crypton_test.html"; 
 var crypton_url = "http://" + crypton_host + ":" + crypton_port + crypton_page;
 var crypton_test_url = "http://" + crypton_host + ":" + crypton_port + crypton_test_page;
 
@@ -24,6 +27,10 @@ var base_test_config = {
     "port": crypton_port
 };
 var client_complete_callback = null;
+
+var test_static_path = path.resolve(__dirname, '..', 'test_static');
+util.log("/test_static from " + test_static_path);
+app.use('/test_static', express.static(test_static_path));
 
 // send the configuration for the current test
 app.get("/client_test/config.js", function (req, res) {
@@ -65,7 +72,8 @@ app.get("/client_test/COMPLETE", function (req, res) {
 
 // return the abs path to the js file for a named client test
 var client_test_filepath = function client_test_filepath(test_name) {
-    return __dirname + "/../client_test/" + test_name + ".js";
+    return path.resolve(__dirname, "..", "client_test",
+                        test_name + ".js");
 };
 
 // create a unique username for tests
@@ -245,6 +253,7 @@ describe("test a browser interacting with a crypton server", function() {
         test_config.name = "generate_account";
         test_config.username = new_test_username();
         test_config.passphrase = "password";
+        util.log(client_test_filepath(test_config.name));
         fs.existsSync(client_test_filepath(test_config.name)).should.be.true;
 
         var complete_defer = Q.defer();

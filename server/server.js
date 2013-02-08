@@ -16,7 +16,7 @@ var express = require('express');
 var app = process.app = module.exports = express();
 
 if (process.env.NODE_ENV.toLowerCase() === 'test') {
-    app.config = require('./lib/config')('config.test.json');
+    app.config = require('./lib/config')(__dirname + '/config.test.json');
 } else {
     app.config = require('./lib/config')(program.config);
 }
@@ -33,8 +33,6 @@ var allowCrossDomain = function (req, res, next) {
 }
 
 app.use(express.logger({stream: process.stdout}));
-util.log("Static from " + __dirname + '/public');
-app.use('/public', express.static(__dirname + '/public'));
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
 
