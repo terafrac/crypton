@@ -10,9 +10,10 @@ var crypton = {};
     return 'http://' + crypton.host + ':' + crypton.port;
   }
 
-  crypton.randomBytes = function randomBytes (nbytes) {
+  function randomBytes (nbytes) {
     return CryptoJS.lib.WordArray.random(nbytes);
   }
+  crypton.randomBytes = randomBytes;
 
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
     options = options || {};
