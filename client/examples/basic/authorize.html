@@ -22,6 +22,8 @@
 <script src="../../dist/crypton.js"></script>
 <script>
 $(document).ready(function () {
+  crypton.host = window.location.hostname;
+
   $('#username').focus();
   $('#userInput').submit(function (e) {
     e.preventDefault();
@@ -29,20 +31,19 @@ $(document).ready(function () {
     $(this).hide();
     $('#progress').show();
 
-    var steps = 0;
-    var progress = document.getElementById('progBar');
     var status = document.getElementById('status');
     var username = $('#username').val();
-    var password = $('#password').val()
+    var password = $('#password').val();
 
-    crypton.authorize(username, password, function step () {
-      console.log(arguments);
-      progress.value = ++steps;
-      status.innerHTML = steps;
-    }, function done (err, account) {
+    crypton.authorize(username, password, function (err, account) {
+      if (err) {
+        status.innerHTML = err;
+        $('#userInput').show();
+        return;
+      }
+
       console.log(account);
       console.log(arguments);
-      progress.value = 2048;
       status.innerHTML = 'done';
     });
   });

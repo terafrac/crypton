@@ -1,18 +1,23 @@
 (function () {
   var Container = crypton.Container = function () {
-    
+    this.keys = {};
+    this.versions = {};
   }
 
-  Container.prototype.get = function () {
+  Container.prototype.add = function (key, value) {
+
   }
 
-  Container.prototype.save = function () {
+  Container.prototype.get = function (key, callback) {
   }
 
-  Container.prototype.getHistory = function () {
+  Container.prototype.save = function (callback) {
   }
 
-  Container.prototype.getDiff = function () {
+  Container.prototype.getHistory = function (callback) {
+  }
+
+  Container.prototype.getDiff = function (callback) {
   }
 })();
 

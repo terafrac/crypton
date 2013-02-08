@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Crypton Account Generation Example</title>
+  <title>Crypton Storage Example</title>
   <style>
   #progress {
     display: none;
@@ -12,11 +12,10 @@
 <form id="userInput">
   username: <input type="text" id="username" /><br />
   password: <input type="password" id="password"><br />
-  <input type="submit" value="register" />
+  <input type="submit" value="log in" />
 </form>
 <div id="progress">
-  <span id="status">waiting for challenge...</span>
-  <progress id="progBar" max="2048"></progress>
+  <span id="status">initializing...</span>
 </div>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="../../dist/crypton.js"></script>
@@ -31,19 +30,19 @@ $(document).ready(function () {
     $(this).hide();
     $('#progress').show();
 
-    var steps = 0;
-    var progress = document.getElementById('progBar');
     var status = document.getElementById('status');
     var username = $('#username').val();
     var password = $('#password').val()
 
-    crypton.generateAccount(username, password, function step () {
-      progress.value = ++steps;
-      status.innerHTML = steps;
-    }, function done (err, account) {
-      console.log(account);
-      progress.value = 2048;
-      status.innerHTML = 'done';
+    crypton.authorize(username, password, function (err, account) {
+      if (err) {
+        status.innerHTML = err;
+        $('#userInput').show();
+        return;
+      }
+
+      console.log(arguments);
+      status.innerHTML = 'authorized';
     });
   });
 });
