@@ -256,7 +256,6 @@ datastore.getUser = function (username, callback) {
 
 datastore.saveChallenge = function (user, expectedAnswerDigestHex, callback) {
   connect(function (client) {
-
     var query = {
       text: "insert into challenge (account_id, base_keyring_id, expected_answer_digest) \
         values ($1, $2, decode($3, 'hex')) returning challenge_id",
@@ -280,10 +279,9 @@ datastore.saveChallenge = function (user, expectedAnswerDigestHex, callback) {
 };
 
 datastore.getChallenge = function (challengeId, callback) {
-  pg.connect(function (client) {
-
+  connect(function (client) {
     var query = {
-      text: "select * from challenge where challenge_id = $1",
+      text: 'select * from challenge where challenge_id = $1',
       values: [
         challengeId
       ]
