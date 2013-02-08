@@ -29,6 +29,7 @@
             console.log(err); 
         } else {
             crypton_test_result.success = true;
+            crypton_test_result.account_serial = account.serialize();
         }
         signal_complete();
     };
@@ -41,7 +42,7 @@
                                 complete_cb, 
                                 {keypairBits: 512,
                                        debug: true,
-                                        save: false
+                                        save: true
                                 });
     } catch (err) {
         console.log("client error");

@@ -114,11 +114,6 @@ datastore.isUsernameTaken = function (username, callback) {
  */
 datastore.saveUser = function (user, callback) {
   connect(function (client) {
-    if (err) {
-      console.log(err);
-      callback('Database error');
-      return;
-    }
 
     client.query('begin');
 
