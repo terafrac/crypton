@@ -8,30 +8,23 @@ var crypton = {};
   crypton.url = function () {
     // TODO HTTPS
     return 'http://' + crypton.host + ':' + crypton.port;
-  };
-
-  function randomBytes (nbytes) {
-    return CryptoJS.lib.WordArray.random(nbytes);
-    //.toString(CryptoJS.enc.Latin1)
   }
 
-  var generateAccountDefaults = {
-    keypairBits: 2048,
-    save: true,
-    debug: false
-  };
+  crypton.randomBytes = function randomBytes (nbytes) {
+    return CryptoJS.lib.WordArray.random(nbytes);
+  }
 
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
-    
-    if ("undefined" === typeof options) {
-      options = {};
-    }
+    options = options || {};
 
-    var param;
-    for (param in generateAccountDefaults) {
-      if ("undefined" === typeof options[param]) {
-        options[param] = generateAccountDefaults[param];
-      }
+    var defaults = {
+      keypairBits: 2048,
+      save: true,
+      debug: false
+    };
+
+    for (var param in defaults) {
+      options[param] = options[param] || defaults[param];
     }
 
     var account = new crypton.Account();
@@ -53,11 +46,15 @@ var crypton = {};
     var keypairBits = options.keypairBits;
     var start = +new Date();
     var keypair = new RSAKey();
-    if (options.debug) console.log("generateAccount 3");
+    if (options.debug) {
+      console.log("generateAccount 3");
+    }
 
     keypair.generateAsync(keypairBits, '03', step, function done () {
-      try {
-      if (options.debug) console.log("generateAccount 4");
+      if (options.debug) {
+          console.log("generateAccount 4");
+      }
+
       account.pubKey = hex2b64(keypair.n.toString(16));
       account.symkeyCiphertext = keypair.encrypt(symkey);
 
@@ -70,7 +67,10 @@ var crypton = {};
 
       step();
 
-      if (options.debug) console.log("generateAccount 5");
+      if (options.debug) {
+        console.log("generateAccount 5");
+      }
+
       var keypairKey = CryptoJS.PBKDF2(passphrase, account.saltKey, {
         keySize: 256 / 32,
         // iterations: 1000
@@ -78,7 +78,10 @@ var crypton = {};
 
       step();
 
-      if (options.debug) console.log("generateAccount 6");
+      if (options.debug) {
+        console.log("generateAccount 6");
+      }
+
       account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
         keypair.serialize(), keypairKey, {
@@ -88,7 +91,10 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
-      if (options.debug) console.log("generateAccount 7");
+      if (options.debug) {
+        console.log("generateAccount 7");
+      }
+
       step();
 
       account.containerNameHmacKeyIv = randomBytes(16);
@@ -100,7 +106,10 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
-      if (options.debug) console.log("generateAccount 8");
+      if (options.debug) {
+        console.log("generateAccount 8");
+      }
+
       step();
 
       account.hmacKeyIv = randomBytes(16);
@@ -119,7 +128,9 @@ var crypton = {};
       account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
       account.hmacKeyIv = account.hmacKeyIv.toString();
 
-      if (options.debug) console.log("generateAccount 9");
+      if (options.debug) {
+        console.log("generateAccount 9");
+      }
 
       if (options.save) {
         account.save(function (err) {
@@ -129,16 +140,11 @@ var crypton = {};
       }
 
       callback(null, account);
-
-      } catch (err) {
-        if (options.debug) console.log("done error");
-        console.log(err);
-      } finally {
-        if (options.debug) console.log("done finally");
-      }
-      
     });
-    if (options.debug) console.log("generateAccount end");
+
+    if (options.debug) {
+      console.log("generateAccount end");
+    }
   };
 
   crypton.authorize = function (username, passphrase, callback) {
