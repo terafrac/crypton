@@ -8,13 +8,32 @@ var crypton = {};
   crypton.url = function () {
     // TODO HTTPS
     return 'http://' + crypton.host + ':' + crypton.port;
-  }
+  };
 
   function randomBytes (nbytes) {
-    return CryptoJS.lib.WordArray.random(nbytes) //.toString(CryptoJS.enc.Latin1);
+    return CryptoJS.lib.WordArray.random(nbytes);
+    //.toString(CryptoJS.enc.Latin1)
   }
 
-  crypton.generateAccount = function (username, passphrase, step, callback) {
+  var generateAccountDefaults = {
+    keypairBits: 2048,
+    save: true,
+    debug: false
+  };
+
+  crypton.generateAccount = function (username, passphrase, step, callback, options) {
+    
+    if ("undefined" === typeof options) {
+      options = {};
+    }
+
+    var param;
+    for (param in generateAccountDefaults) {
+      if ("undefined" === typeof options[param]) {
+        options[param] = generateAccountDefaults[param];
+      }
+    }
+
     var account = new crypton.Account();
     account.username = username;
     account.saltKey = randomBytes(32);
@@ -25,12 +44,20 @@ var crypton = {};
     var symkey = randomBytes(32);
     var hmacKey = randomBytes(32);
 
+    if (options.debug) { 
+        console.log("generateAccount 2"); 
+    }
+
     step();
 
-    var keypairBits = 2048;
+    var keypairBits = options.keypairBits;
     var start = +new Date();
     var keypair = new RSAKey();
+    if (options.debug) console.log("generateAccount 3");
+
     keypair.generateAsync(keypairBits, '03', step, function done () {
+      try {
+      if (options.debug) console.log("generateAccount 4");
       account.pubKey = hex2b64(keypair.n.toString(16));
       account.symkeyCiphertext = keypair.encrypt(symkey);
 
@@ -43,6 +70,7 @@ var crypton = {};
 
       step();
 
+      if (options.debug) console.log("generateAccount 5");
       var keypairKey = CryptoJS.PBKDF2(passphrase, account.saltKey, {
         keySize: 256 / 32,
         // iterations: 1000
@@ -50,6 +78,7 @@ var crypton = {};
 
       step();
 
+      if (options.debug) console.log("generateAccount 6");
       account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
         keypair.serialize(), keypairKey, {
@@ -59,6 +88,7 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
+      if (options.debug) console.log("generateAccount 7");
       step();
 
       account.containerNameHmacKeyIv = randomBytes(16);
@@ -70,6 +100,7 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
+      if (options.debug) console.log("generateAccount 8");
       step();
 
       account.hmacKeyIv = randomBytes(16);
@@ -88,16 +119,32 @@ var crypton = {};
       account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
       account.hmacKeyIv = account.hmacKeyIv.toString();
 
-      account.save(function () {
-        callback(null, account);
-      });
+      if (options.debug) console.log("generateAccount 9");
+
+      if (options.save) {
+        account.save(function (err) {
+          callback(err, account);
+        });
+        return;
+      }
+
+      callback(null, account);
+
+      } catch (err) {
+        if (options.debug) console.log("done error");
+        console.log(err);
+      } finally {
+        if (options.debug) console.log("done finally");
+      }
+      
     });
+    if (options.debug) console.log("generateAccount end");
   };
 
   crypton.authorize = function (username, passphrase, callback) {
     superagent.post(crypton.url() + '/account/' + username)
       .end(function (res) {
-        if (!res.body || res.body.success != true) {
+        if (!res.body || res.body.success !== true) {
           callback(res.body.error);
           return;
         }
@@ -137,12 +184,12 @@ var crypton = {};
         var response = {
           challengeId: body.challengeId,
           answer: timeValueCiphertextDigest
-        }
+        };
 
         superagent.post(crypton.url() + '/account/' + username + '/answer')
           .send(response)
           .end(function (res) {
-            if (!res.body || res.body.success != true) {
+            if (!res.body || res.body.success !== true) {
               callback(res.body.error);
               return;
             }

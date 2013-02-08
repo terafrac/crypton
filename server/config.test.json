@@ -1,0 +1,15 @@
+{
+  "database": {
+    "type": "postgres",
+    "username": "crypton_test_user",
+    "password": "crypton_test_user_password",
+    "database": "crypton_test",
+    "host": "localhost",
+    "port": 5432
+  },
+  "default_key_size": 32,
+  "id_translator": {
+    "key_file": "/dev/urandom"
+  },
+  "cookie_secret_file": "/dev/urandom"
+}

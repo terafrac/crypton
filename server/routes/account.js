@@ -2,6 +2,7 @@ var app = process.app;
 var db = app.datastore;
 var crypto = require('crypto');
 var uuid = require('node-uuid');
+var util = require("util");
 
 /*
  * Save account to server
@@ -14,6 +15,7 @@ app.post('/account', function (req, res) {
 
   db.isUsernameTaken(req.body.username, function (taken) {
     if (taken) {
+      util.log("dupe username " + req.body.username);
       res.send({
         success: false,
         error: 'Username taken'

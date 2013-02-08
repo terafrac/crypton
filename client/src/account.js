@@ -7,8 +7,11 @@
     superagent.post(crypton.url() + '/account')
       .send(this.serialize())
       .end(function (res) {
-        console.log(res.body);
-        callback();
+        if (res.body.success !== true) {
+          callback(res.body);
+        } else {
+          callback();
+        }
       }
     );
   }
