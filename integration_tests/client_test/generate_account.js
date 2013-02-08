@@ -26,6 +26,7 @@
         if (err) { 
             crypton_test_result.success = false;
             console.log("error given to complete_cb");
+            console.log(err.error);
             console.log(err); 
         } else {
             crypton_test_result.success = true;

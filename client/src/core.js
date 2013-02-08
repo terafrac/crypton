@@ -122,8 +122,8 @@ var crypton = {};
       if (options.debug) console.log("generateAccount 9");
 
       if (options.save) {
-        account.save(function () {
-          callback(null, account);
+        account.save(function (err) {
+          callback(err, account);
         });
         return;
       }
