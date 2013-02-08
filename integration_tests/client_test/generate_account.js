@@ -39,7 +39,10 @@
                                 crypton_test_config.passphrase, 
                                 logstep, 
                                 complete_cb, 
-                                {});
+                                {keypairBits: 512,
+                                       debug: true,
+                                        save: false
+                                });
     } catch (err) {
         console.log("client error");
         //console.log(err);

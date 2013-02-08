@@ -125,7 +125,7 @@ var browser = function browser(done, url, context_cb, result_cb, options) {
 };
 
 describe("test a browser interacting with a crypton server", function() {
-    this.timeout(500000);
+    this.timeout(1000000);
     before(function () { 
         util.log("before");
         app.start();     
@@ -273,8 +273,11 @@ describe("test a browser interacting with a crypton server", function() {
             util.log("result starting");
             if (err) { return done(err); }
             util.log(util.inspect(result));
+            result.success.should.be.true;
+            result.complete.should.equal("finished");
             done();
         };
+
         var options = { complete_promise: complete_defer.promise };
         browser(done, crypton_test_url, context_cb, result_cb, options);
     });
