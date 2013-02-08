@@ -204,12 +204,14 @@ console.log(challenge.toString(CryptoJS.enc.utf8));
               return;
             }
 
-            var account = new crypton.Account();
+            // TODO set cookie
+            var session = new crypton.Session();
+            session.account = new crypton.Account();
             for (var i in res.body.account) {
-              account[i] = res.body.account[i];
+              session.account[i] = res.body.account[i];
             }
 
-            callback(null, account);
+            callback(null, session);
           });
       }
     );

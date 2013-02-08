@@ -34,18 +34,37 @@ $(document).ready(function () {
     var username = $('#username').val();
     var password = $('#password').val()
 
-    crypton.authorize(username, password, function (err, account) {
+    crypton.authorize(username, password, function (err, session) {
       if (err) {
         status.innerHTML = err;
         $('#userInput').show();
         return;
       }
 
-      console.log(arguments);
       status.innerHTML = 'authorized';
+      window.session = session;
+      getNotepad();
     });
   });
 });
+
+function getNotepad () {
+  session.load('notepad', function (err, collection) {
+    if (err) {
+      session.create('notepad', function (err, collection) {
+        doNotepad(collection);
+      });
+      return;
+    }
+
+    doNotepad(collection);
+  });
+}
+
+function doNotepad (notepad) {
+  console.log(arguments);
+}
+
 </script>
 </body>
 </html>
