@@ -12,32 +12,38 @@ var conString = 'tcp://' +
 
 // callback with a client. crash the whole app on error.
 var connect = datastore.connect = function(callback) {
-    pg.connect(conString, function (err, client) {
-        if (err) {
-            // TODO: retry a few times with delays, so we can survive a quick
-            // database hiccup. crash the whole app only if the DB's really
-            // unavailable.
-            console.log('Could not connect to database:');
-            console.log(err);
-            process.exit(1);
-        }
-        callback(client);
-   });
+  pg.connect(conString, function (err, client) {
+    if (err) {
+      // TODO: retry a few times with delays, so we can survive a quick
+      // database hiccup. crash the whole app only if the DB's really
+      // unavailable.
+      console.log('Could not connect to database:');
+      console.log(err);
+      process.exit(1);
+    }
+
+    callback(client);
+  });
 };
 
 // callback with (error, list_of_tables) from database
 var list_tables = datastore.list_tables = function(callback) {
-    connect(function(client) {
-        client.query("select * from pg_tables", function (err, result) {
-            if (err) { return callback(err); }
-            var tables = [];
-            var rows = result.rows.length;
-            for (var i = 0; i < rows; i++) {
-                tables.push(result.rows[i].tablename);
-            }
-            callback(null, tables);
-        });
+  connect(function(client) {
+    client.query("select * from pg_tables", function (err, result) {
+      if (err) {
+        return callback(err);
+      }
+
+      var tables = [];
+      var rows = result.rows.length;
+
+      for (var i = 0; i < rows; i++) {
+          tables.push(result.rows[i].tablename);
+      }
+
+      callback(null, tables);
     });
+  });
 };
 
 datastore.isSetup = function (callback) {
@@ -114,7 +120,6 @@ datastore.isUsernameTaken = function (username, callback) {
  */
 datastore.saveUser = function (user, callback) {
   connect(function (client) {
-
     client.query('begin');
 
     var accountQuery = {
@@ -209,12 +214,6 @@ datastore.saveUser = function (user, callback) {
 
 datastore.getUser = function (username, callback) {
   connect(function (client) {
-    if (err) {
-      console.log(err);
-      callback('Database error');
-      return;
-    }
-
     var query = {
       text: 'select * from account, base_keyring where account.username = $1 \
         and base_keyring.account_id = account.account_id',
