@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="mocha.css" />
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="mocha.js"></script>
+    <script src="chai.js"></script>
+    <script>
+      mocha.ui('bdd'); 
+      mocha.reporter('html');
+      mocha.globals('WebFont');
+      mocha.timeout(Infinity);
+      var assert = chai.assert;
+    </script>
+    <script src="../dist/crypton.js"></script>
+    <script src="test.core.js"></script>
+    <script>
+      if (window.mochaPhantomJS) {
+        if (typeof(process) === 'undefined') process = {};
+        if (!process.stdout) process.stdout = {};
+        mochaPhantomJS.run();
+      } else {
+        mocha.run();
+      }
+    </script>
+  </body>
+</html>
