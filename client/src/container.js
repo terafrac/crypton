@@ -37,29 +37,7 @@
   Container.prototype.getDiff = function (callback) {
     var last = this.latestVersion();
     var old = this.versions[last] || this.keys;
-    callback(null, createDiff(old, this.keys));
-
-    function createDiff (o, n) {
-      var diff = {};
-      for (var i in n) {
-        if (typeof n[i] == 'object' || typeof n[i] == 'array') {
-          diff[i] = createDiff(o[i], n[i]);
-          continue;
-        }
-
-        if (n[i] != o[i]) {
-          diff[i] = [n[i]];
-        }
-      }
-
-      for (var j in o) {
-        if (!diff[j]) {
-          diff[j] = undefined;
-        }
-      }
-
-      return diff;
-    }
+    callback(null, crypton.diff.create(old, this.keys));
   }
 
   Container.prototype.latestVersion = function () {
