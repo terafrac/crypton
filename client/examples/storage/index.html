@@ -3,7 +3,8 @@
 <head>
   <title>Crypton Storage Example</title>
   <style>
-  #progress {
+  #progress,
+  #padForm {
     display: none;
   }
   </style>
@@ -17,52 +18,98 @@
 <div id="progress">
   <span id="status">initializing...</span>
 </div>
+<form id="padForm">
+  <textarea id="pad"></textarea><br />
+  <input type="submit" value="save" />
+</form>
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="../../dist/crypton.js"></script>
 <script>
+var $status;
+var $pad;
+var $padForm;
+
 $(document).ready(function () {
   crypton.host = window.location.hostname;
 
+  $status = $('#status');
+  $pad = $('#pad');
+  $padForm = $('#padForm');
   $('#username').focus();
   $('#userInput').submit(function (e) {
     e.preventDefault();
 
     $(this).hide();
     $('#progress').show();
+    $padForm.show();
 
-    var status = document.getElementById('status');
     var username = $('#username').val();
     var password = $('#password').val()
 
     crypton.authorize(username, password, function (err, session) {
       if (err) {
-        status.innerHTML = err;
+        $status.text(err);
         $('#userInput').show();
         return;
       }
 
-      status.innerHTML = 'authorized';
+      $status.text('authorized');
+      $padForm.show();
       window.session = session;
-      getNotepad();
+      getCollection();
     });
+  });
+
+  $padForm.submit(function (e) {
+    e.preventDefault();
+    saveNote();
   });
 });
 
-function getNotepad () {
-  session.load('notepad', function (err, collection) {
+function getCollection () {
+  $status.text('loading notepad');
+  
+  session.load('notepad', function (err, container) {
     if (err) {
-      session.create('notepad', function (err, collection) {
-        doNotepad(collection);
+      session.create('notepad', function (err, container) {
+        window.container = container;
+        getNote();
       });
       return;
     }
 
-    doNotepad(collection);
+    window.container = container;
+    getNote();
   });
 }
 
-function doNotepad (notepad) {
-  console.log(arguments);
+function getNote () {
+  $status.text('notepad loaded');
+
+  // create the key if it doesn't exist
+  container.add('note', function () {
+    container.get('note', function (err, note) {
+      $pad.val(note);
+    });
+  });
+}
+
+function saveNote () {
+  $status.text('saving note');
+
+  container.get('note', function (err, note) {
+    note = $pad.val();
+    container.save(function (err) {
+      console.log(container);
+      if (err) {
+        $status.text(err);
+        return;
+      }
+
+      $status.text('note saved');
+    });
+  });
 }
 
 </script>
