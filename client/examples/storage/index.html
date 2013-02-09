@@ -90,7 +90,7 @@ function getNote () {
   // create the key if it doesn't exist
   container.add('note', function () {
     container.get('note', function (err, note) {
-      $pad.val(note);
+      $pad.val(note.text);
     });
   });
 }
@@ -99,7 +99,7 @@ function saveNote () {
   $status.text('saving note');
 
   container.get('note', function (err, note) {
-    note = $pad.val();
+    note.text = $pad.val();
     container.save(function (err) {
       console.log(container);
       if (err) {
