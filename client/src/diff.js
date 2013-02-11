@@ -50,15 +50,7 @@
     return diff;
   }
 
-  Diff.apply = function (diff, o, callback) {
-
-  }
-
-  Diff.string = function () {
-
-  }
-
-  Diff.object = function () {
+  Diff.apply = function (diff, old, callback) {
 
   }
 })();

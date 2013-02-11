@@ -100,8 +100,8 @@ function saveNote () {
 
   container.get('note', function (err, note) {
     note.text = $pad.val();
+
     container.save(function (err) {
-      console.log(container);
       if (err) {
         $status.text(err);
         return;

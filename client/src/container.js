@@ -29,7 +29,12 @@
       var now = +new Date();
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
-      callback();
+
+      var tx = new crypton.Transaction();
+      tx.save(diff);
+      tx.commit(function (err) {
+        callback();
+      });
     }.bind(this));
   }
 
