@@ -14,8 +14,9 @@ module.exports = function (filename) {
     filename = path.resolve(process.env.PWD, filename);
   }
 
+  var config;
   try {
-    var config = fs.readFileSync(filename);
+    config = fs.readFileSync(filename);
     config = JSON.parse(config.toString());
   } catch (e) {
     console.log('Could not parse config file:');

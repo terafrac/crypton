@@ -16,7 +16,13 @@ program
 
 var express = require('express');
 var app = process.app = module.exports = express();
-app.config = require('./lib/config')(program.config);
+
+if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'test') {
+    app.config = require('./lib/config')(__dirname + '/config.test.json');
+} else {
+    app.config = require('./lib/config')(program.config);
+}
+
 app.datastore = require('./lib/storage');
 
 /*jslint camelcase: false*/
