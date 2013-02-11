@@ -139,9 +139,12 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
+      req.session.account = user;
+
       res.send({
         success: true,
-        account: user
+        account: user,
+        sessionIdentifier: req.sessionID
       });
     });
   });
