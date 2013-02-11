@@ -4,6 +4,7 @@ Crypton provides a simple public JavaScript API and drop-in server, hiding the c
 
 Client-side JavaScript cryptography is a new field of possibilities. We aim to create the framework that we had years ago while starting our SpiderOak backup product, and hope that it will benefit the Internet and world at large.
 
+
                          _______________________
                        //   __..--~~~~--..__    \\
                       ||___/  |  |   |  |   \ __/ |
