@@ -33,6 +33,7 @@
 
     var container = new crypton.Container();
     container.name = containerName;
+    container.session = this;
     this.containers.push(container);
     callback(null, container);
   }
