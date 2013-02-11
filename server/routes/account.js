@@ -4,6 +4,7 @@ var app = process.app;
 var db = app.datastore;
 var crypto = require('crypto');
 var uuid = require('node-uuid');
+var middleware = require('../lib/middleware');
 
 /*
  * Save account to server
@@ -153,5 +154,11 @@ app.post('/account/:username/answer', function (req, res) {
 /*
 * Change the password for account
 */
-app.post('/account/:username/password', function (req, res) {
-});
+app.post('/account/:username/password',
+  middleware.verifySession,
+  function (req, res) {
+    res.send({
+      success: true
+    });
+  }
+);
