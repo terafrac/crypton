@@ -1,19 +1,21 @@
-util = require("util");
-util.log("database tests");
-should = require("should");
+"use strict";
 
-app = require("../server");
-db = require("../lib/storage");
+var util = require("util");
+util.log("database tests");
+var should = require("should");
+
+var app = require("../server");
+var db = require("../lib/storage");
 
 describe("basic database functionality", function () {
     it("make a connection", function (done) {
         db.connect(function (client) {
-            done();        
+            done();
         });
     });
     it("select the time", function (done) {
         db.connect(function (client) {
-        
+
             client.query("select current_timestamp", function (err, result) {
                 if (err) { return done(err); }
 

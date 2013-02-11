@@ -11,4 +11,3 @@ app.post('/transaction/:token/commit', function (req, res) {
 // abort a transaction w/o committing
 app.del('/transaction/:token', function (req, res) {
 });
-

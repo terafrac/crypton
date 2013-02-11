@@ -1,4 +1,6 @@
-util = require("util");
+"use strict";
+
+var util = require("util");
 util.log("lib account tests");
 
 describe("account lib functions", function () {

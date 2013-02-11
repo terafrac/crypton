@@ -1,4 +1,4 @@
-util = require("util");
+var util = require("util");
 util.log("lib session tests");
 
 describe("lib session", function () {

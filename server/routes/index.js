@@ -6,5 +6,5 @@ files.splice(
 );
 
 for (var i in files) {
-  require('./' + files[i]);
+    require('./' + files[i]);
 }
