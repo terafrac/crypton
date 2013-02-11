@@ -11,4 +11,3 @@ app.del('/inbox/:messageIdentifier', function (req, res) {
 
 app.post('/outbox', function (req, res) {
 });
-

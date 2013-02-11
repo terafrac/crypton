@@ -1,4 +1,4 @@
-var app = process.app ? process.app : require("../../../server.js");
+var app = process.app ? process.app : require('../../../server.js');
 var config = app.config;
 
 try {

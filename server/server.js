@@ -1,25 +1,28 @@
 #!/usr/bin/env node
+'use strict';
 
 var program = require('commander');
-var util = require('util');
 var fs = require('fs');
 var connect = require('connect');
 var assert = require('assert');
 
 program
   .version('0.0.1')
-  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
+  .option('-c, --config [file]',
+    'Specify a custom configuration file [default config]')
   .option('-p, --port [port]', 'Specify a port number [2013]', 2013)
   .option('-v, --verbose', 'Enable verbose logging')
   .parse(process.argv);
 
 var express = require('express');
 var app = process.app = module.exports = express();
-
 app.config = require('./lib/config')(program.config);
 app.datastore = require('./lib/storage');
+
+/*jslint camelcase: false*/
 app.id_translator = require("id_translator")
-                    .load_id_translator(app.config.id_translator.key_file);
+    .load_id_translator(app.config.id_translator.key_file);
+/*jslint camelcase: true*/
 
 var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -28,37 +31,40 @@ var allowCrossDomain = function (req, res, next) {
   next();
 };
 
+// XXX this should either be split into a new module
+// or use fs.readFileSync (when not /dev/urandom).
+// doesn't belong in this file
 var fileContentsSync = function fileContentsSync(path, length, position) {
-  if ("undefined" === typeof position) {
-    position = 0;
-  }
-  descriptor = fs.openSync(path, "r");
-  contents = new Buffer(length);
+  position = position || 0;
+  var descriptor = fs.openSync(path, 'r');
+  var contents = new Buffer(length);
   contents.fill(0);
-  bytesRead = fs.readSync(descriptor, contents, 0, 
-                          length, position);
-  assert(bytesRead === length); 
+  var bytesRead = fs.readSync(descriptor, contents, 0, length, position);
+  assert(bytesRead === length);
   fs.closeSync(descriptor);
-  return contents;
+  return contents.toString('binary');
 };
 
-app.use(express.logger({stream: process.stdout}));
+app.use(express.logger());
 app.use(connect.cookieParser());
-app.use(connect.session(
-  { secret: fileContentsSync(app.config.cookie_secret_file,
-                             app.config.default_key_size).toString('binary'),
-     store: connect.MemoryStore,
-       key: 'crypton_sid', 
-    // TODO secure: true when we add SSL
-    cookie: { secure: false }}));
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
 
-// var logFile = fs.createWriteStream('/tmp/crypton_server.log', {flags: 'a'});
+app.use(connect.session({
+  secret: fileContentsSync(
+    app.config.cookieSecretFile,
+    app.config.defaultKeySize
+  ),
+  store: connect.MemoryStore,
+  key: 'crypton.sid',
+  cookie: {
+    secure: false // TODO true when we add SSL
+  }
+}));
 
 require('./routes');
 
-var start = app.start = function start () {
+var start = app.start = function start() {
   app.listen(program.port);
 };
 

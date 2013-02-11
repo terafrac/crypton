@@ -1,3 +1,5 @@
+"use strict";
+
 var fs = require('fs');
 var pg = require('pg');
 var config = process.app.config.database;
@@ -26,8 +28,8 @@ var connect = datastore.connect = function(callback) {
   });
 };
 
-// callback with (error, list_of_tables) from database
-var list_tables = datastore.list_tables = function(callback) {
+// callback with (error, listOfTables) from database
+var listTables = datastore.listTables = function(callback) {
   connect(function(client) {
     client.query("select * from pg_tables", function (err, result) {
       if (err) {
@@ -38,7 +40,7 @@ var list_tables = datastore.list_tables = function(callback) {
       var rows = result.rows.length;
 
       for (var i = 0; i < rows; i++) {
-          tables.push(result.rows[i].tablename);
+        tables.push(result.rows[i].tablename);
       }
 
       callback(null, tables);
@@ -104,20 +106,20 @@ datastore.isUsernameTaken = function (username, callback) {
 
     client.query(query, function (err, result) {
       if (err || result.rows.length) {
-        callback(true);
+          callback(true);
       } else {
-        callback(false);
+          callback(false);
       }
     });
   });
 };
 
 /*
- * Saves a generated user object
- * Creates an "account" row
- * Creates a "base_keyring" row
- * Associates them
- */
+* Saves a generated user object
+* Creates an "account" row
+* Creates a "base_keyring" row
+* Associates them
+*/
 datastore.saveUser = function (user, callback) {
   connect(function (client) {
     client.query('begin');
@@ -214,9 +216,11 @@ datastore.saveUser = function (user, callback) {
 
 datastore.getUser = function (username, callback) {
   connect(function (client) {
+            /*jslint multistr: true*/
     var query = {
       text: 'select * from account, base_keyring where account.username = $1 \
         and base_keyring.account_id = account.account_id',
+            /*jslint multistr: false*/
       values: [ username ]
     };
 
@@ -257,8 +261,10 @@ datastore.getUser = function (username, callback) {
 datastore.saveChallenge = function (user, expectedAnswerDigestHex, callback) {
   connect(function (client) {
     var query = {
+      /*jslint multistr: true*/
       text: "insert into challenge (account_id, base_keyring_id, expected_answer_digest) \
         values ($1, $2, decode($3, 'hex')) returning challenge_id",
+      /*jslint multistr: false*/
       values: [
         user.accountId,
         user.keyringId,

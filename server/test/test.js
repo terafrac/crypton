@@ -1,9 +1,11 @@
-assert = require("assert");
-should = require("should");
-mocha = require("mocha");
-util = require("util");
+"use strict";
 
-app = require("../server");
+var assert = require("assert")
+  , should = require("should")
+  , mocha = require("mocha")
+  , util = require("util");
+
+var app = require("../server");
 
 describe("app", function () {
     it("should have basic properties", function () {
@@ -14,6 +16,5 @@ describe("app", function () {
         app.id_translator.public_id.should.be.a('function');
         app.id_translator.internal_id.should.be.a('function');
         app.listen.should.be.a('function');
-    })
+    });
 });
-

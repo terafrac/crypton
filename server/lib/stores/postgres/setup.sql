@@ -164,7 +164,77 @@ create table container (
 COMMENT ON TABLE container IS 
 'A partition of the object database kept for an application user.
 The state of the object database is then built up by appling records
-sequentially.';
+sequentially.
+
+How crypto for containers works:
+
+    containers have session keys (tracked in container_session_key)
+
+        A session key for a container involves 2 keys:
+            encryption key (32 random bytes)
+            HMAC key (32 random bytes.)
+
+        The session keys are used by the accounts participating in the
+        container to encrypt, decrypt, and verify container records.
+
+        This table tracks the creation and succession of keys.  A container
+        that''s only used by one user will likely have the same session key
+        throughout its use.  
+        
+        A container shared with many users will typically get a new session key
+        (superceding the existing key) whenever a container is unshared with an
+        account, so that new records in the container would no longer be
+        readable by the unshared account.
+
+    session keys are shared with accounts (in container_session_key_share)
+
+        Critically, the keys themselves are NOT STORED directly in
+        container_session_key, but rather stored 1:many in
+        container_session_key_share, encrypted to each account that should be
+        able to read the records stored with the session keys.
+
+        For every entry in container_session_key, there will be one or more
+        records in container_session_key_share.
+
+    container data is a series of records (in container_record)
+
+        The state of the container is built up by the client by applying all
+        the container''s records in order.
+
+        Each record is encrypted by applying AES256CFB, w/ a random 16 byte IV,
+        and with segment width of 128 bits and simple pkcs7 padding.  The key
+        used is the current container_session_key.  An HMAC-SHA256 of the
+        resulting ciphertext using the session''s HMAC key is also stored.
+
+    So the process of creating a new container is: 
+        - determine the container_name_ciphertext: by taking the normalized utf8
+            HMAC-SHA256(key=container_name_hmac_key, 
+                        msg=norm_utf8(name_plaintext)
+        - generate container_session keys 
+            session_key = random(32)
+            hmac_key = random(32)
+            signature = private_key.sign(
+                hmac(key='', msg=session_key + hmac_key).digest())
+        - for every account (including the owner) that the container is shared
+          with, calculate the container_session_key_share entry.
+            session_key_ciphertext is session_key encrypted to to_account_id''s
+                public key (using PKCS#1)
+            hmac_key_ciphertext is hmac_key encrypted to to_account_id''s
+                public key (using PKCS#1)
+        - create a transaction
+        - add container entry to transaction
+        - add container_session_key entry to transaction
+        - add one or more container_session_key_share entries to transaction
+            (one entry for every account we''re sharing the key with, including
+            the container''s creator, as calculated above.)
+        - add one or more container_record entries to the transaction
+        - (add any other data to the transaction needed, including more
+          containers, messages, whatever.)
+        - ask the server to complete the transaction
+        - handle any errors the server returns regarding completing the
+          transactions. (typical errors will involve our local state being too
+          old, and needing a refresh/retry.)
+';
 COMMENT ON COLUMN container.name_hmac IS
 'This is an HMAC of the name the application chose for the container.  This
 happens automatically by the framework, allowing the developer to use plaintext
@@ -267,9 +337,16 @@ create table container_record (
     transaction_id int8 not null,
     creation_time timestamp not null default current_timestamp,
     hmac bytea not null,
+    payload_iv bytea not null,
     payload_ciphertext bytea not null
     constraint hmac_len 
         check (octet_length(hmac)=32)
+    constraint payload_iv_len
+        check (octet_length(payload_iv)=16)
+    constraint payload_ciphertext_len_modulo
+        check (octet_length(payload_ciphertext) % 16 = 0)
+    constraint payload_ciphertext_len
+        check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
 );
 
 COMMENT ON TABLE container_record IS 
@@ -533,9 +610,16 @@ create table transaction_add_container_record (
     name_hmac bytea not null,
     latest_record_id int8 not null default 0,
     hmac bytea not null,
+    payload_iv bytea not null,
     payload_ciphertext bytea not null,
     constraint hmac_len 
         check (octet_length(hmac)=32)
+    constraint payload_iv_len
+        check (octet_length(payload_iv)=16)
+    constraint payload_ciphertext_len_modulo
+        check (octet_length(payload_ciphertext) % 16 = 0)
+    constraint payload_ciphertext_len
+        check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
 );
 
 create table transaction_add_message (

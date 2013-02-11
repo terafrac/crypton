@@ -1,8 +1,9 @@
+'use strict';
+
 var app = process.app;
 var db = app.datastore;
 var crypto = require('crypto');
 var uuid = require('node-uuid');
-var util = require("util");
 
 /*
  * Save account to server
@@ -15,10 +16,10 @@ app.post('/account', function (req, res) {
 
   db.isUsernameTaken(req.body.username, function (taken) {
     if (taken) {
-      util.log("dupe username " + req.body.username);
+      console.log('dupe username: ' + req.body.username);
       res.send({
-        success: false,
-        error: 'Username taken'
+          success: false,
+          error: 'Username taken'
       });
       return;
     }
@@ -41,8 +42,8 @@ app.post('/account', function (req, res) {
 });
 
 /*
- * Authorize with server
- */
+* Authorize with server
+*/
 app.post('/account/:username', function (req, res) {
   db.getUser(req.params.username, function (err, user) {
     if (err) {
@@ -90,8 +91,8 @@ app.post('/account/:username', function (req, res) {
 });
 
 /*
- * Authorize with server
- */
+* Authorize with server
+*/
 app.post('/account/:username/answer', function (req, res) {
   var challengeId = req.body.challengeId;
   var answer = req.body.answer;
@@ -130,7 +131,6 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-console.log(challenge.expectedAnswerDigest, answer);
       if (challenge.expectedAnswerDigest != answer) {
         res.send({
           success: false,
@@ -148,8 +148,7 @@ console.log(challenge.expectedAnswerDigest, answer);
 });
 
 /*
- * Change the password for account
- */
+* Change the password for account
+*/
 app.post('/account/:username/password', function (req, res) {
 });
-
