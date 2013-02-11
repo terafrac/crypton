@@ -106,9 +106,9 @@ datastore.isUsernameTaken = function (username, callback) {
 
     client.query(query, function (err, result) {
       if (err || result.rows.length) {
-          callback(true);
+        callback(true);
       } else {
-          callback(false);
+        callback(false);
       }
     });
   });
@@ -155,12 +155,14 @@ datastore.saveUser = function (user, callback) {
       ];
 
       var keyringQuery = {
+        /*jslint multistr: true*/
         text: "insert into base_keyring (\"" + columns.join('", "') + "\") \
           values ($1, $2, \
           decode($3, 'hex'), decode($4, 'hex'), decode($5, 'hex'), \
           decode($6, 'hex'), decode($7, 'hex'), decode($8, 'hex'), \
           decode($9, 'hex'), decode($10, 'hex'), decode($11, 'hex'), decode($12, 'hex')) \
           returning base_keyring_id",
+        /*jslint multistr: false*/
         values: [
           accountId,
           user.pubKey,
@@ -216,11 +218,11 @@ datastore.saveUser = function (user, callback) {
 
 datastore.getUser = function (username, callback) {
   connect(function (client) {
-            /*jslint multistr: true*/
     var query = {
+      /*jslint multistr: true*/
       text: 'select * from account, base_keyring where account.username = $1 \
         and base_keyring.account_id = account.account_id',
-            /*jslint multistr: false*/
+      /*jslint multistr: false*/
       values: [ username ]
     };
 
