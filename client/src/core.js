@@ -178,6 +178,8 @@ var crypton = {};
           }
         );
 
+console.log(challenge.toString(CryptoJS.enc.utf8));
+
         var timeValueCiphertext = CryptoJS.AES.encrypt(
           body.time, challenge, {
             iv: iv,
@@ -196,13 +198,20 @@ var crypton = {};
         superagent.post(crypton.url() + '/account/' + username + '/answer')
           .send(response)
           .end(function (res) {
+            console.log(res.body);
             if (!res.body || res.body.success !== true) {
               callback(res.body.error);
               return;
             }
 
-            console.log(res.body);
-            callback();
+            // TODO set cookie
+            var session = new crypton.Session();
+            session.account = new crypton.Account();
+            for (var i in res.body.account) {
+              session.account[i] = res.body.account[i];
+            }
+
+            callback(null, session);
           });
       }
     );

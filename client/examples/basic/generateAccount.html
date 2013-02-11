@@ -22,6 +22,8 @@
 <script src="../../dist/crypton.js"></script>
 <script>
 $(document).ready(function () {
+  crypton.host = window.location.hostname;
+
   $('#username').focus();
   $('#userInput').submit(function (e) {
     e.preventDefault();

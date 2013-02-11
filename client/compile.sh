@@ -48,6 +48,7 @@ compile() {
     src/peer.js \
     src/message.js \
     src/request.js \
+    src/diff.js \
     src/crypto/*.js \
     src/rsa/*.js \
     > dist/crypton.js
