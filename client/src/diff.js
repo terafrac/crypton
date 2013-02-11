@@ -1,22 +1,49 @@
 (function () {
   var Diff = crypton.diff = {};
 
-  Diff.create = function (o, n) {
+  Diff.create = function (old, current) {
     var diff = {};
-    for (var i in n) {
-      if (typeof n[i] == 'object' || typeof n[i] == 'array') {
-        diff[i] = Diff.create(o[i], n[i]);
+
+    for (var i in current) {
+      if (!current.hasOwnProperty(i)) {
         continue;
       }
 
-      if (n[i] != o[i]) {
-        diff[i] = [n[i]];
+      // recurse into objects and arrays
+      if (typeof current[i] == 'object' || typeof current[i] == 'array') {
+        diff[i] = Diff.create(old[i] || {}, current[i]);
+        continue;
+      }
+
+      // find new keys
+      if (!old.hasOwnProperty(i)) {
+        diff[i] = [
+          undefined,
+          current[i]
+        ];
+        continue;
+      }
+
+      // find changed keys
+      if (current[i] != old[i]) {
+        diff[i] = [
+          old[i],
+          current[i]
+        ];
       }
     }
 
-    for (var j in o) {
-      if (!diff[j]) {
-        diff[j] = undefined;
+    // find deleted keys
+    for (var i in old) {
+      if (!old.hasOwnProperty(i)) {
+        continue;
+      }
+
+      if (typeof current[i] == 'undefined') {
+        diff[i] = [
+          old[i],
+          undefined
+        ];
       }
     }
 
