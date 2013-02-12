@@ -19,8 +19,8 @@ app.post('/account', function (req, res) {
     if (taken) {
       console.log('dupe username: ' + req.body.username);
       res.send({
-          success: false,
-          error: 'Username taken'
+        success: false,
+        error: 'Username taken'
       });
       return;
     }
