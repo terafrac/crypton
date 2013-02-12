@@ -4,6 +4,7 @@ var app = process.app;
 var db = app.datastore;
 var crypto = require('crypto');
 var uuid = require('node-uuid');
+var middleware = require('../lib/middleware');
 
 /*
  * Save account to server
@@ -18,8 +19,8 @@ app.post('/account', function (req, res) {
     if (taken) {
       console.log('dupe username: ' + req.body.username);
       res.send({
-          success: false,
-          error: 'Username taken'
+        success: false,
+        error: 'Username taken'
       });
       return;
     }
@@ -139,9 +140,12 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
+      req.session.accountId = user.accountId;
+
       res.send({
         success: true,
-        account: user
+        account: user,
+        sessionIdentifier: req.sessionID
       });
     });
   });
@@ -150,5 +154,11 @@ app.post('/account/:username/answer', function (req, res) {
 /*
 * Change the password for account
 */
-app.post('/account/:username/password', function (req, res) {
-});
+app.post('/account/:username/password',
+  middleware.verifySession,
+  function (req, res) {
+    res.send({
+      success: true
+    });
+  }
+);

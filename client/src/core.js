@@ -204,8 +204,8 @@ console.log(challenge.toString(CryptoJS.enc.utf8));
               return;
             }
 
-            // TODO set cookie
-            var session = new crypton.Session();
+            var sessionIdentifier = res.body.sessionIdentifier;
+            var session = new crypton.Session(sessionIdentifier);
             session.account = new crypton.Account();
             for (var i in res.body.account) {
               session.account[i] = res.body.account[i];
