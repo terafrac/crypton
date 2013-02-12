@@ -1,4 +1,5 @@
 var app = process.app;
+var db = app.datastore;
 
 app.get('/container/:containerNameCiphertext', function (req, res) {
 });

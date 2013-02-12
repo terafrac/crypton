@@ -140,7 +140,7 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      req.session.account = user;
+      req.session.accountId = user.accountId;
 
       res.send({
         success: true,
