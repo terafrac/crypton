@@ -67,32 +67,38 @@ CREATE TABLE base_keyring (
     base_keyring_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,
     creation_time timestamp not null default current_timestamp,
-    salt_key bytea,
-    salt_challenge bytea,
     challenge_key bytea,
+    challenge_key_salt bytea,
+    keypair_salt bytea,
     keypair_iv bytea,
-    keypair_serialized_ciphertext bytea,
-    pubkey_serialized bytea,
-    symkey_ciphertext bytea,
+    keypair bytea,
+    pubkey bytea,
+    symkey bytea,
     container_name_hmac_key_iv bytea,
-    container_name_hmac_key_ciphertext bytea,
+    container_name_hmac_key bytea,
     hmac_key_iv bytea,
-    hmac_key_ciphertext bytea,
+    hmac_key bytea,
     deletion_time timestamp
     constraint challenge_key_len
         check (octet_length(challenge_key)=32)
-    constraint salt_key_len
-        check (octet_length(salt_key)=32)
+    constraint challenge_key_salt_len
+        check (octet_length(challenge_key_salt)=32)
+    constraint keypair_salt_len
+        check (octet_length(keypair_salt)=32)
     constraint keypair_iv_len
         check (octet_length(keypair_iv)=16)
+    constraint keypair_len_modulo
+        check (octet_length(keypair) % 16 = 0)
+    constraint keypair_len
+        check (octet_length(keypair) BETWEEN 16 and 26214400)
     constraint container_name_hmac_key_iv_len
         check (octet_length(container_name_hmac_key_iv)=16)
-    constraint container_name_hmac_key_ciphertext_len
-        check (octet_length(container_name_hmac_key_ciphertext)=32)
+    constraint container_name_hmac_key_len
+        check (octet_length(container_name_hmac_key)=32)
     constraint hmac_key_iv_len
         check (octet_length(hmac_key_iv)=16)
-    constraint hmac_key_ciphertext_len
-        check (octet_length(hmac_key_ciphertext)=32)
+    constraint hmac_key_len
+        check (octet_length(hmac_key)=32)
 );
 
 COMMENT ON TABLE base_keyring IS
@@ -100,27 +106,27 @@ COMMENT ON TABLE base_keyring IS
 Some of these change whenever an account changes the passphrase.
 These are stored separately from account, even though only one base_keyring
 should be active at any given time.';
-COMMENT ON COLUMN base_keyring.salt_key IS
-'Salt used with KDF and passphrase to create AES256 key used to encrypt keypair';
-COMMENT ON COLUMN base_keyring.salt_challenge IS
+COMMENT ON COLUMN base_keyring.challenge_key_salt IS
 'Salt used with KDF and passphrase to create challenge_key';
 COMMENT ON COLUMN base_keyring.challenge_key IS
 'A key the server can use to issue auth challenges to the client';
+COMMENT ON COLUMN base_keyring.keypair_salt IS
+'Salt used with KDF and passphrase to create AES256 key used to encrypt keypair';
 COMMENT ON COLUMN base_keyring.keypair_iv IS
 'AES IV used with passphrase derived key for encrypted keypair';
-COMMENT ON COLUMN base_keyring.keypair_serialized_ciphertext IS
+COMMENT ON COLUMN base_keyring.keypair IS
 'AES ciphertext of serialize public/private keypair';
-COMMENT ON COLUMN base_keyring.pubkey_serialized IS
+COMMENT ON COLUMN base_keyring.pubkey IS
 'Plaintext of serialized public key from the keypair';
-COMMENT ON COLUMN base_keyring.symkey_ciphertext IS
+COMMENT ON COLUMN base_keyring.symkey IS
 'AES256 sym key as encrypted by private key';
 COMMENT ON COLUMN base_keyring.container_name_hmac_key_iv IS
 'AES IV used with symkey to decrypt container_name_hmac_key';
-COMMENT ON COLUMN base_keyring.container_name_hmac_key_ciphertext IS
+COMMENT ON COLUMN base_keyring.container_name_hmac_key IS
 'AES output ciphertext of 32 byte HMAC key used for container names';
 COMMENT ON COLUMN base_keyring.hmac_key_iv IS
 'IV used with symkey to decrypt hmac_key';
-COMMENT ON COLUMN base_keyring.hmac_key_ciphertext IS
+COMMENT ON COLUMN base_keyring.hmac_key IS
 'AES output ciphertext of 32 byte HMAC key for general data authentication';
 
 CREATE TABLE challenge (

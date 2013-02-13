@@ -154,7 +154,7 @@ app.post('/account/:username/answer', function (req, res) {
 /*
 * Change the password for account
 */
-app.post('/account/:username/password',
+app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
     res.send({
