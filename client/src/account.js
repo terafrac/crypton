@@ -42,7 +42,6 @@
     ).toString(CryptoJS.enc.Utf8);
 
     // reconstruct keypair
-    var keypairRaw = JSON.parse(keypairSerialized);
     this.keypair = new RSAKey().fromString(keypairSerialized);
 
     // decrypt symkey
