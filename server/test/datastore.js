@@ -1,18 +1,20 @@
 "use strict";
+/*jslint expr: true*/
 
 var util = require("util");
 util.log("database tests");
 
 var db = require("../lib/storage");
 
-describe("basic database functionality", function () {
-  it("make a connection", function (done) {
-    db.connect(function (client) {
+describe("datastore", function () {
+
+  it("makes a connection", function (done) {
+    db.connect(function () {
       done();
     });
   });
 
-  it("select the time", function (done) {
+  it("selects the time", function (done) {
     db.connect(function (client) {
       client.query("select current_timestamp", function (err, result) {
         if (err) { return done(err); }
@@ -26,7 +28,7 @@ describe("basic database functionality", function () {
     });
   });
 
-  it("find our tables", function (done) {
+  it("finds our tables", function (done) {
     db.listTables(function (err, tables) {
       if (err) { return done(err); }
       //util.log(util.inspect(tables));
@@ -36,6 +38,34 @@ describe("basic database functionality", function () {
       done();
     });
   });
-  it("get a new ID number");
-  it("receive events for all the rows in a long result as they stream");
+
+  it("gets a new ID number", function (done) {
+    db.connect(function (client) {
+      client.query(
+        "select nextval('version_identifier')",
+        function (err, result) {
+          if (err) { return done(err); }
+          var idNum = result.rows[0].nextval;
+          idNum.should.be.ok;
+          done();
+        }
+      );
+    });
+  });
+
+  it("receives events for all rows as they stream", function (done) {
+    db.connect(function (client) {
+      var query = client.query("select * from generate_series(1, 100)");
+      var rows = [];
+      query.on('row', function (row) { rows.push(row); });
+      query.on('error', function (err) { done(err); });
+      query.on('end', function () {
+        rows.should.have.length(100);
+        /*jslint camelcase: false*/
+        rows[0].generate_series.should.equal(1);
+        /*jslint camelcase: true*/
+        done();
+      });
+    });
+  });
 });
