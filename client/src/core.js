@@ -84,18 +84,22 @@ var crypton = {};
 
       account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
-        CryptoJS.enc.Utf8.parse(keypair.serialize()), keypairKey, {
+        keypair.serialize(), keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.NoPadding
+          padding: CryptoJS.pad.Pkcs7
         }
       ).ciphertext.toString();
 
+      var encrypted = CryptoJS.lib.CipherParams.create({
+        ciphertext: CryptoJS.enc.Hex.parse(account.keypairSerializedCiphertext),
+        iv: account.keypairIv
+      });
       var keypairSerialized = CryptoJS.AES.decrypt(
-        account.keypairSerializedCiphertext, keypairKey, {
+        encrypted, keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.NoPadding
+          padding: CryptoJS.pad.Pkcs7
         }
       );
       window.keypairSerialized = keypairSerialized;

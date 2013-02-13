@@ -28,23 +28,18 @@
       // iterations: 1000
     });
 
-    var hp = CryptoJS.enc.Hex.parse;
-    var keypairIv = hp(this.keypairIv);
-    var keypairSerializedCiphertext = hp(this.keypairSerializedCiphertext);
     var encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: keypairSerializedCiphertext,
-      iv: keypairIv
+      ciphertext: CryptoJS.enc.Hex.parse(this.keypairSerializedCiphertext),
+      iv: CryptoJS.enc.Hex.parse(this.keypairIv)
     });
-console.log(encrypted);
-console.log(keypairKey);
-    window.keypairSerialized = CryptoJS.AES.decrypt(
+    var keypairSerialized = CryptoJS.AES.decrypt(
       encrypted, keypairKey, {
-        iv: keypairIv,
+        iv: CryptoJS.enc.Hex.parse(this.keypairIv),
         mode: CryptoJS.mode.CFB,
-        //padding: CryptoJS.pad.NoPadding
+        padding: CryptoJS.pad.Pkcs7
       }
     );
-
+    window.keypairSerialized = keypairSerialized;
     console.log('keypairSerialized:');
     console.log(keypairSerialized);
     callback();
