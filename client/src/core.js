@@ -8,11 +8,11 @@ var crypton = {};
   crypton.url = function () {
     // TODO HTTPS
     return 'http://' + crypton.host + ':' + crypton.port;
-  }
+  };
 
   function randomBytes (nbytes) {
     return CryptoJS.lib.WordArray.random(nbytes);
-  }
+  };
   crypton.randomBytes = randomBytes;
 
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
@@ -32,7 +32,6 @@ var crypton = {};
     account.username = username;
     account.saltKey = randomBytes(32);
     account.saltChallenge = randomBytes(32);
-    console.log(account);
 
     var containerNameHmacKey = randomBytes(32);
     var symkey = randomBytes(32);
@@ -85,12 +84,22 @@ var crypton = {};
 
       account.keypairIv = randomBytes(16);
       account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
-        keypair.serialize(), keypairKey, {
+        CryptoJS.enc.Utf8.parse(keypair.serialize()), keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
           padding: CryptoJS.pad.NoPadding
         }
       ).ciphertext.toString();
+
+      var keypairSerialized = CryptoJS.AES.decrypt(
+        account.keypairSerializedCiphertext, keypairKey, {
+          iv: account.keypairIv,
+          mode: CryptoJS.mode.CFB,
+          padding: CryptoJS.pad.NoPadding
+        }
+      );
+      window.keypairSerialized = keypairSerialized;
+      console.log(keypairSerialized);
 
       if (options.debug) {
         console.log("generateAccount 7");
@@ -126,14 +135,18 @@ var crypton = {};
       account.saltChallenge = account.saltChallenge.toString();
       account.saltKey = account.saltKey.toString();
       account.keypairIv = account.keypairIv.toString();
+      account.keypairSerializedCiphertext = account.keypairSerializedCiphertext;
       account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
+      account.containerNameHmacKeyCiphertext = account.containerNameHmacKeyCiphertext;
       account.hmacKeyIv = account.hmacKeyIv.toString();
+      account.hmacKeyCiphertext = account.hmacKeyCiphertext;
 
       if (options.debug) {
         console.log("generateAccount 9");
       }
 
       if (options.save) {
+        //return;
         account.save(function (err) {
           callback(err, account);
         });
@@ -178,8 +191,6 @@ var crypton = {};
           }
         );
 
-console.log(challenge.toString(CryptoJS.enc.utf8));
-
         var timeValueCiphertext = CryptoJS.AES.encrypt(
           body.time, challenge, {
             iv: iv,
@@ -207,11 +218,14 @@ console.log(challenge.toString(CryptoJS.enc.utf8));
             var sessionIdentifier = res.body.sessionIdentifier;
             var session = new crypton.Session(sessionIdentifier);
             session.account = new crypton.Account();
+            session.account.passphrase = passphrase;
             for (var i in res.body.account) {
               session.account[i] = res.body.account[i];
             }
 
-            callback(null, session);
+            session.account.unravel(function () {
+              callback(null, session);
+            });
           });
       }
     );

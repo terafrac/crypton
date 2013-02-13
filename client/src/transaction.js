@@ -1,6 +1,20 @@
 (function () {
   var Transaction = crypton.Transaction = function () {
     this.chunks = [];
+
+    // temporary
+    this.types = [
+      'addAccount',
+      'setBaseKeyring',
+      'addContainer',
+      'deleteContainer',
+      'addContainerSessionKey',
+      'addContainerSessionKeyShare',
+      'addContainerRecord',
+      'addMessage',
+      'deleteMessage'
+    ];
+
     this.create(function (err, token) {
       if (err) {
         console.log(err);
