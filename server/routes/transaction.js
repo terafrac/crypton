@@ -45,12 +45,12 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 });
 
 // commit a transaction
-app.post('/transaction/:token/commit', function (req, res) {
+app.post('/transaction/:token/commit', verifySession, function (req, res) {
   var token = req.params.token;
 });
 
 // abort a transaction w/o committing
-app.del('/transaction/:token', function (req, res) {
+app.del('/transaction/:token', verifySession, function (req, res) {
   var token = req.params.token;
 
   // TODO make sure transaction belongs to session

@@ -20,7 +20,7 @@ datastore.saveUser = function (user, callback) {
       if (err) {
         console.log(err);
         callback('Database error');
-        // FIXME: rollback the database transaction
+        client.query('rollback');
         return;
       }
 
@@ -70,6 +70,7 @@ datastore.saveUser = function (user, callback) {
         if (err) {
           console.log(err);
           callback('Database error');
+          client.query('rollback');
           return;
         }
 
@@ -84,6 +85,7 @@ datastore.saveUser = function (user, callback) {
         client.query(associationQuery, function (err, result) {
           if (err) {
             console.log(err);
+            client.query('rollback');
             callback('Database error');
             return;
           }
@@ -92,6 +94,7 @@ datastore.saveUser = function (user, callback) {
             if (err) {
               console.log(err);
               callback('Database error');
+              client.query('rollback');
               return;
             }
 

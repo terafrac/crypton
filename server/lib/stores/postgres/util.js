@@ -104,6 +104,7 @@ datastore.isUsernameTaken = function (username, callback) {
 
     client.query(query, function (err, result) {
       if (err || result.rows.length) {
+console.log(result.rows);
         callback(true);
       } else {
         callback(false);
