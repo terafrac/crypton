@@ -17,11 +17,6 @@
   Account.prototype.refresh = function () {
   };
 
-  // decrypts:
-  //  containerNameHmacKey
-  //  hmacKey
-  //  keypair
-  //  smykey
   Account.prototype.unravel = function (callback) {
     var hp = CryptoJS.enc.Hex.parse;
 
@@ -38,7 +33,6 @@
       ciphertext: hp(this.keypairSerializedCiphertext),
       iv: keypairIv
     });
-
     var keypairSerialized = CryptoJS.AES.decrypt(
       encrypted, keypairKey, {
         iv: keypairIv,
@@ -61,10 +55,23 @@
       ciphertext: hp(this.containerNameHmacKeyCiphertext),
       iv: containerNameHmacKeyIv
     });
-
-    var containerNameHmacKey = CryptoJS.AES.decrypt(
+    this.containerNameHmacKey = CryptoJS.AES.decrypt(
       encrypted, this.symkey, {
         iv: containerNameHmacKeyIv,
+        mode: CryptoJS.mode.CFB,
+        padding: CryptoJS.pad.NoPadding
+      }
+    );
+
+    // decrypt hmacKey
+    var hmacKeyIv = hp(this.hmacKeyIv);
+    encrypted = CryptoJS.lib.CipherParams.create({
+      ciphertext: hp(this.hmacKeyCiphertext),
+      iv: hmacKeyIv
+    });
+    this.hmacKey = CryptoJS.AES.decrypt(
+      encrypted, this.symkey, {
+        iv: hmacKeyIv,
         mode: CryptoJS.mode.CFB,
         padding: CryptoJS.pad.NoPadding
       }
