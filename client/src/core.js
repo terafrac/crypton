@@ -56,7 +56,7 @@ var crypton = {};
       }
 
       account.pubKey = hex2b64(keypair.n.toString(16));
-      account.symkeyCiphertext = keypair.encrypt(symkey);
+      account.symkeyCiphertext = keypair.encrypt(symkey.toString());
 
       step();
 
@@ -150,7 +150,6 @@ var crypton = {};
       }
 
       if (options.save) {
-        //return;
         account.save(function (err) {
           callback(err, account);
         });
