@@ -23,22 +23,25 @@
   //  keypair
   //  smykey
   Account.prototype.unravel = function (callback) {
+    var hp = CryptoJS.enc.Hex.parse;
+
     // reconstruct keypairKey from passphrase
-    var saltKey = CryptoJS.enc.Hex.parse(this.saltKey);
+    var saltKey = hp(this.saltKey);
     var keypairKey = CryptoJS.PBKDF2(this.passphrase, saltKey, {
       keySize: 256 / 32,
       // iterations: 1000
     });
 
     // decrypt keypair
+    var keypairIv = hp(this.keypairIv);
     var encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: CryptoJS.enc.Hex.parse(this.keypairSerializedCiphertext),
-      iv: CryptoJS.enc.Hex.parse(this.keypairIv)
+      ciphertext: hp(this.keypairSerializedCiphertext),
+      iv: keypairIv
     });
 
     var keypairSerialized = CryptoJS.AES.decrypt(
       encrypted, keypairKey, {
-        iv: CryptoJS.enc.Hex.parse(this.keypairIv),
+        iv: keypairIv,
         mode: CryptoJS.mode.CFB,
         padding: CryptoJS.pad.Pkcs7
       }
@@ -50,17 +53,18 @@
 
     // decrypt symkey
     var symkey = this.keypair.decrypt(this.symkeyCiphertext);
-    this.symkey = CryptoJS.enc.Hex.parse(symkey);
+    this.symkey = hp(symkey);
 
     // decrypt containerNameHmacKey
+    var containerNameHmacKeyIv = hp(this.containerNameHmacKeyIv);
     encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: CryptoJS.enc.Hex.parse(this.containerNameHmacKeyCiphertext),
-      iv: CryptoJS.enc.Hex.parse(this.containerNameHmacKeyIv)
+      ciphertext: hp(this.containerNameHmacKeyCiphertext),
+      iv: containerNameHmacKeyIv
     });
 
     var containerNameHmacKey = CryptoJS.AES.decrypt(
       encrypted, this.symkey, {
-        iv: CryptoJS.enc.Hex.parse(this.containerNameHmacKeyIv),
+        iv: containerNameHmacKeyIv,
         mode: CryptoJS.mode.CFB,
         padding: CryptoJS.pad.NoPadding
       }
