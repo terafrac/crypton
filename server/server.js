@@ -2,10 +2,6 @@
 'use strict';
 
 var program = require('commander');
-var fs = require('fs');
-var connect = require('connect');
-var assert = require('assert');
-
 program
   .version('0.0.1')
   .option('-c, --config [file]',
@@ -14,17 +10,13 @@ program
   .option('-v, --verbose', 'Enable verbose logging')
   .parse(process.argv);
 
+var connect = require('connect');
 var express = require('express');
+var util = require('./lib/util');
+
 var app = process.app = module.exports = express();
-
-if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'test') {
-    app.config = require('./lib/config')(__dirname + '/config.test.json');
-} else {
-    app.config = require('./lib/config')(program.config);
-}
-
+app.config = require('./lib/config')(program.config);
 app.datastore = require('./lib/storage');
-
 /*jslint camelcase: false*/
 app.id_translator = require("id_translator")
     .load_id_translator(app.config.id_translator.key_file);
@@ -32,33 +24,20 @@ app.id_translator = require("id_translator")
 
 var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'x-requested-with,content-type');
+  res.header('Access-Control-Allow-Methods',
+             'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers',
+             'x-requested-with,content-type');
   next();
-};
-
-// XXX this should either be split into a new module
-// or use fs.readFileSync (when not /dev/urandom).
-// doesn't belong in this file
-var fileContentsSync = function fileContentsSync(path, length, position) {
-  position = position || 0;
-  var descriptor = fs.openSync(path, 'r');
-  var contents = new Buffer(length);
-  contents.fill(0);
-  var bytesRead = fs.readSync(descriptor, contents, 0, length, position);
-  assert(bytesRead === length);
-  fs.closeSync(descriptor);
-  return contents.toString('binary');
 };
 
 app.use(express.logger());
 app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
-
 app.use(connect.session({
-  secret: fileContentsSync(
-    app.config.cookieSecretFile,
+  secret: util.readFileSync(
+    app.config.cookieSecretFile, null,
     app.config.defaultKeySize
   ),
   store: connect.MemoryStore,
