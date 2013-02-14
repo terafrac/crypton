@@ -1,7 +1,7 @@
 test: test-integration
 
 test-integration: ../node_modules node_modules setup-test-environment crypton-client
-	@NODE_ENV=test ./node_modules/.bin/mocha test
+	@NODE_ENV=test ./node_modules/.bin/mocha
 
 node_modules:
 	$(MAKE) -C ../server node_modules

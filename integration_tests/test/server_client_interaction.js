@@ -1,6 +1,6 @@
 'use strict';
 
-var app = require("../../server/server");
+var app = require("../../server/app");
 
 require("should");
 var util = require("util");
@@ -134,7 +134,7 @@ describe("test a browser interacting with a crypton server", function () {
 
   before(function () {
     util.log("before");
-    app.start();
+    app.listen(parseInt(cryptonPort, 10));
   });
 
   after(function () {

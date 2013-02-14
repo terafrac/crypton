@@ -1,8 +1,7 @@
-var app = process.app ? process.app : require('../server');
-var config = app.config;
+var app = process.app || require('../app');
 
 try {
-  module.exports = require('./stores/' + config.database.type);
+  module.exports = require('./stores/' + app.config.database.type);
 } catch (e) {
   console.log('Could not load datastore from config:');
   console.log(e);

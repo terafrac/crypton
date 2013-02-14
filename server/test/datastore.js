@@ -1,6 +1,7 @@
 "use strict";
 /*jslint expr: true*/
 
+require('should');
 var util = require("util");
 util.log("database tests");
 

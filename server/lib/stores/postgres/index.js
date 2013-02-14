@@ -3,7 +3,7 @@
 var datastore = module.exports = {};
 
 require('./util');
-require('./user');
+require('./account');
 require('./challenge');
 require('./transaction');
 
