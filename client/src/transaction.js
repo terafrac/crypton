@@ -1,5 +1,6 @@
 (function () {
-  var Transaction = crypton.Transaction = function () {
+  var Transaction = crypton.Transaction = function (session, callback) {
+    this.session = session;
     this.chunks = [];
 
     // temporary
@@ -16,17 +17,26 @@
     ];
 
     this.create(function (err, token) {
+console.log(arguments);
       if (err) {
         console.log(err);
+        callback(err);
+        return;
       }
 
       this.token = token;
+
+      callback(null, this);
     }.bind(this));
   };
 
   Transaction.prototype.create = function (callback) {
     var url = crypton.url() + '/transaction/create';
-    superagent.post(url).end(function (res) {
+console.log(url);
+    superagent.post(url)
+      .set('session-identifier', this.session.id)
+      .end(function (res) {
+console.log(res);
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
         return;
@@ -53,6 +63,7 @@
     this.verify();
     var url = crypton.url() + '/transaction/create';
     superagent.post(url)
+      .set('session-identifier', this.session.id)
       .send(chunk)
       .end(function (res) {
         console.log(res.body);
@@ -69,14 +80,16 @@
   Transaction.prototype.commit = function () {
     this.verify();
     var url = crypton.url() + '/transaction/' + this.token + '/commit';
-    superagent.post(url).end(function (res) {
-      if (!res.body || res.body.success !== true) {
-        callback(res.body.error);
-        return;
-      }
+    superagent.post(url)
+      .set('session-identifier', this.session.id)
+      .end(function (res) {
+        if (!res.body || res.body.success !== true) {
+          callback(res.body.error);
+          return;
+        }
 
-      callback();
-    });
+        callback();
+      });
   };
 
   Transaction.prototype.cancel = function (callback) {

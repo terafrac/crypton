@@ -91,20 +91,6 @@ var crypton = {};
         }
       ).ciphertext.toString();
 
-      var encrypted = CryptoJS.lib.CipherParams.create({
-        ciphertext: CryptoJS.enc.Hex.parse(account.keypairSerializedCiphertext),
-        iv: account.keypairIv
-      });
-      var keypairSerialized = CryptoJS.AES.decrypt(
-        encrypted, keypairKey, {
-          iv: account.keypairIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.Pkcs7
-        }
-      );
-      window.keypairSerialized = keypairSerialized;
-      console.log(keypairSerialized);
-
       if (options.debug) {
         console.log("generateAccount 7");
       }

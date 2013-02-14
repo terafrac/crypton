@@ -34,34 +34,41 @@
     var sessionKey = crypton.randomBytes(32);
     var hmacKey = crypton.randomBytes(32);
     var signature = 'hello'; // TODO sign with private key
-
-    var containerNameCiphertext = CryptoJS.HmacSHA256(
+    var sessionKeyCiphertext = this.account.keypair.encrypt(sessionKey.toString());
+    var hmacKeyCiphertext = this.account.keypair.encrypt(hmacKey.toString());
+    var containerNameHmac = CryptoJS.HmacSHA256(
       containerName,
       this.account.containerNameHmacKey
     );
 
-    var sessionKeyCiphertext = '';
+    new crypton.Transaction(this, function (err, tx) {
+console.log(arguments);
+      tx.save({
+        type: 'addContainer',
+        containerNameHmac: containerNameHmac
+      });
 
-    var hmacKeyCiphertext = '';
+      tx.save({
+        type: 'addContainerSessionKey'
+        // ??
+      });
 
-    var tx = new crypton.Transaction();
+      tx.save({
+        type: 'addContainerSessionKeyShare',
+        containerNameHmac: containerNameHmac,
+        sessionKeyCiphertext: sessionKeyCiphertext,
+        hmacKeyCiphertext: hmacKeyCiphertext
+      });
 
-    tx.save({
-      type: 'addContainer',
-      containerNameCiphertext: containerNameCiphertext
-    });
-
-    tx.save({
-      type: 'addContainer',
-      containerNameCiphertext: containerNameCiphertext
-    });
-
-    tx.commit(function () {
-      var container = new crypton.Container();
-      container.name = containerName;
-      container.session = this;
-      this.containers.push(container);
-      callback(null, container);
+      tx.commit(function () {
+        var container = new crypton.Container();
+        container.name = containerName;
+        container.sessionKey = sessionKey;
+        container.hmacKey = hmacKey;
+        container.session = this;
+        this.containers.push(container);
+        callback(null, container);
+      }.bind(this));
     });
   };
 })();

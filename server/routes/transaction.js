@@ -4,9 +4,10 @@ var verifySession = require('../lib/middleware').verifySession;
 
 // start a transaction, get a transaction token
 app.post('/transaction/create', verifySession, function (req, res) {
-  var account = req.session.accountId;
+  var accountId = req.session.accountId;
 
-  db.createTransaction(account, function (err, token) {
+  db.createTransaction(accountId, function (err, token) {
+console.log(arguments);
     if (err) {
       res.send({
         success: false,
