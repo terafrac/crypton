@@ -18,6 +18,7 @@ Required body:
 
 ````javascript
 {
+  username: "...",
   challengeKeySalt: "...",  // 32-byte salt for challenge key, base64
   challengeKey: "...",      // challenge key ciphertext, base64
   keypairSalt: "...",       // 32-byte salt for keypair, base64
