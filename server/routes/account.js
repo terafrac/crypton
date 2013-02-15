@@ -8,36 +8,22 @@ var middleware = require('../lib/middleware');
 
 /*
  * Save account to server
- * Check if username is taken
  * Create session cookie
  */
 app.post('/account', function (req, res) {
   // TODO sanitize
-  var body = req.body;
-
-  db.isUsernameTaken(req.body.username, function (taken) {
-    if (taken) {
-      console.log('dupe username: ' + req.body.username);
+  var account = req.body;
+  db.saveAccount(account, function (err) {
+    if (err) {
       res.send({
         success: false,
-        error: 'Username taken'
+        error: err
       });
       return;
     }
-
-    db.saveUser(body, function (err) {
-      if (err) {
-        res.send({
-          success: false,
-          error: err
-        });
-        return;
-      }
-
-      // TODO set session cookie here
-      res.send({
-        success: true
-      });
+    // TODO set session cookie here
+    res.send({
+      success: true
     });
   });
 });

@@ -41,17 +41,17 @@ describe("postgres/account", function () {
   var baseKeyringId = 2002;
   var newAccount = {
     username: 'testuser',
-    challengeKey: 'challengeKey',
-    challengeKeySalt: 'challengeKeySalt',
-    keypairSalt: 'keypairSalt',
-    keypairIv: 'keypairIv',
-    keypair: 'keypair',
-    pubkey: 'pubkey',
-    symkey: 'symkey',
-    containerNameHmacKeyIv: 'containerNameHmacKeyIv',
-    containerNameHmacKey: 'containerNameHmacKey',
-    hmacKeyIv: 'hmacKeyIv',
-    hmacKey: 'hmacKey'
+    challengeKey: 'deadbeef',
+    challengeKeySalt: 'deadbeef',
+    keypairSalt: 'deadbeef',
+    keypairIv: 'deadbeef',
+    keypair: 'deadbeef',
+    pubkey: 'deadbeef',
+    symkey: 'deadbeef',
+    containerNameHmacKeyIv: 'deadbeef',
+    containerNameHmacKey: 'deadbeef',
+    hmacKeyIv: 'deadbeef',
+    hmacKey: 'deadbeef'
   };
 
   before(function () {
@@ -100,9 +100,24 @@ describe("postgres/account", function () {
       });
     });
 
-    it("raises an error if username is taken");
+    it("returns an error if username is taken", function (done) {
+      client.callbackArgs = [
+        undefined,
+        [{ code: '23505' }]
+      ];
+      account.saveAccount(newAccount, function (err) {
+        assert.equal(err, 'Username already taken.');
+        var expected = [
+          /^begin$/,
+          { text: /^insert into account /, values: [newAccount.username] },
+          /^rollback$/
+        ];
+        assertQueryListMatches(client.queries, expected);
+        done();
+      });
+    });
 
-    it("raises an error if keyring is invalid");
+    it("returns an error if keyring is invalid");
   });
 
   describe("getAccount", function () {
