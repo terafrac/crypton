@@ -437,21 +437,88 @@ Client / Server Communication:
 create table message (
     message_id int8 not null default nextval('version_identifier'),
     creation_time timestamp not null default current_timestamp,
-    end_time interval,
+    ttl interval,
     from_account_id int8 not null references account (account_id),
     to_account_id int8 not null references account (account_id),
+    keys_ciphertext bytea not null,
+    keys_signature bytea not null,
+    header_iv bytea not null,
     header_ciphertext bytea not null,
+    header_hmac bytea not null,
+    payload_iv bytea not null,
     payload_ciphertext bytea not null,
+    payload_hmac bytea not null,
     deletion_time timestamp
-    constraint max_header_len
-        check (octet_length(header_ciphertext) < 4096)
+    constraint deleted_after_created 
+        check (deletion_time is null or deletion_time >= creation_time)
+    constraint header_iv_len
+        check (octet_length(header_iv)=16)
+    constraint header_ciphertext_len_modulo
+        check (octet_length(header_ciphertext) % 16 = 0)
+    constraint header_ciphertext_len
+        check (octet_length(header_ciphertext) BETWEEN 16 and 4096)
+    constraint header_hmac_len
+        check (octet_length(header_hmac)=32)
+    constraint payload_iv_len
+        check (octet_length(payload_iv)=16)
+    constraint payload_ciphertext_len_modulo
+        check (octet_length(payload_ciphertext) % 16 = 0)
+    constraint payload_ciphertext_len
+        check (octet_length(payload_ciphertext) BETWEEN 16 and 1048576)
+    constraint payload_hmac_len
+        check (octet_length(payload_hmac)=32)
 );
 
+COMMENT ON TABLE message IS 'realtime messages between accounts';
+COMMENT ON COLUMN message.ttl IS 
+'Optional field to denote a message as transient, having an end time.  Messages
+may be automatically deleted by the server after this interval.';
+COMMENT ON COLUMN message.deletion_time IS 
+'the time the server marks a message as having been deleted by the recipient.
+rows for deleted messages may optionally also be deleted entirely.';
+COMMENT ON COLUMN message.keys_ciphertext IS 
+'2 keys, each 32 bytes, a data key and a hmac key, concatenated together for a
+total of 64 bytes, and encrypted using to_account_id''s public RSA key using
+PKCS#1 padding.
+
+Note that message key generation, key encryption, key decryption, and key
+verification between peers may be cached by both sender and receiver.  In other
+words, the same set of keys (and thus the same keys_ciphertext) may be memoized
+and used repeatedly for sending many messages.  Each message sent with the same
+keys MUST have unique IVs though.
+
+Similar caching can be used on the receiving side.  In other words, decrypting
+keys_ciphertext and verifying keys_signtature can be memoized by the message
+receiver, such that same inputs give same AES and HMAC key outputs w/o
+repeating the RSA operations.
+
+It''s not important that this memoization be persisted anywhere, because it can
+always be recalculated and/or the conversation can switch to new keys.  
+
+The intention is just that two peers frequently exchanging messages with
+eachother would have to perform the RSA operations infrequently.
+';
+COMMENT ON COLUMN message.keys_signature IS
+'signature made by from_account_id''s private RSA key of keys_ciphertext';
+COMMENT ON COLUMN message.header_iv IS 'AES IV for header_ciphertext';
+COMMENT ON COLUMN message.header_ciphertext IS 
+'AES256CFB of header, key=data key, segment_width=128, PKCS1 padding';
+COMMENT ON COLUMN message.header_hmac IS 
+'SHA256 HMAC of header_ciphertext using hmac key';
+COMMENT ON COLUMN message.payload_iv IS 
+'A distinct IV to be used with the same data key for deciphering 
+payload_ciphertext';
+COMMENT ON COLUMN message.payload_ciphertext IS 
+'AES256CFB of payload, key=data key, segment_width=128, PKCS1 padding';
+COMMENT ON COLUMN message.payload_hmac IS 
+'SHA256 HMAC of payload_ciphertext using hmac key';
 
 create table transaction (
     transaction_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null,
     creation_time timestamp not null default current_timestamp,
+    modify_time timestamp,
+    num_operations int4 not null default 0,
     abort_timestamp timestamp,
     commit_request_time timestamp,
     commit_start_time timestamp,
@@ -633,8 +700,30 @@ create table transaction_add_message (
     transaction_id int8 not null references transaction,
     ttl interval,
     to_account_id int8 not null,
+    keys_ciphertext bytea not null,
+    keys_signature bytea not null,
+    header_iv bytea not null,
     header_ciphertext bytea not null,
-    payload_ciphertext bytea not null
+    header_hmac bytea not null,
+    payload_iv bytea not null,
+    payload_ciphertext bytea not null,
+    payload_hmac bytea not null
+    constraint header_iv_len
+        check (octet_length(header_iv)=16)
+    constraint header_ciphertext_len_modulo
+        check (octet_length(header_ciphertext) % 16 = 0)
+    constraint header_ciphertext_len
+        check (octet_length(header_ciphertext) BETWEEN 16 and 4096)
+    constraint header_hmac_len
+        check (octet_length(header_hmac)=32)
+    constraint payload_iv_len
+        check (octet_length(payload_iv)=16)
+    constraint payload_ciphertext_len_modulo
+        check (octet_length(payload_ciphertext) % 16 = 0)
+    constraint payload_ciphertext_len
+        check (octet_length(payload_ciphertext) BETWEEN 16 and 1048576)
+    constraint payload_hmac_len
+        check (octet_length(payload_hmac)=32)
 );
 
 create table transaction_delete_message (
