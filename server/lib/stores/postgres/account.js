@@ -50,8 +50,12 @@ exports.saveAccount = function saveAccount(account, callback) {
 
         if (err) {
           client.query('rollback');
-          console.log(err);
-          callback('Database error');
+          if (err.code === '23514') {
+            callback('Invalid keyring data.');
+          } else {
+            console.log('Unhandled database error: ' + err);
+            callback('Database error.');
+          }
           return;
         }
         client.query('commit', function () { callback(); });

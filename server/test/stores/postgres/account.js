@@ -117,7 +117,34 @@ describe("postgres/account", function () {
       });
     });
 
-    it("returns an error if keyring is invalid");
+    it("returns an error if keyring is invalid", function (done) {
+      client.callbackArgs = [
+        undefined,
+        [null, { rows: [{
+          account_id: accountId,
+          base_keyring_id: baseKeyringId
+        }] }],
+        [{ code: '23514' }]
+      ];
+      account.saveAccount(newAccount, function (err) {
+        assert.equal(err, 'Invalid keyring data.');
+        var expected = [
+          /^begin$/,
+          { text: /^insert into account /, values: [newAccount.username] },
+          { text: /^insert into base_keyring /, values: [
+            baseKeyringId, accountId,
+            newAccount.challengeKey, newAccount.challengeKeySalt,
+            newAccount.keypairSalt, newAccount.keypairIv, newAccount.keypair,
+            newAccount.pubkey, newAccount.symkey,
+            newAccount.containerNameHmacKeyIv, newAccount.containerNameHmacKey,
+            newAccount.hmacKeyIv, newAccount.hmacKey
+          ] },
+          /^rollback$/
+        ];
+        assertQueryListMatches(client.queries, expected);
+        done();
+      });
+    });
   });
 
   describe("getAccount", function () {
