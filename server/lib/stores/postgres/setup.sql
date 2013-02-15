@@ -32,7 +32,6 @@ functions:
     This works by encrypting the internal ID with aes256cfb(key=id_aes_key,
     segment_width=8) and including a SHA256 HMAC.
 
-
  internal_id(public_id):
     a server side function to authenticate and decrypt a public ID back to an
     internal 8 byte integer ID
@@ -625,16 +624,6 @@ greatly decrease the worst-case latency by narrowing lock contention.
 
 ';
 
-create table transaction_add_account (
-    id int8 not null primary key default nextval('version_identifier'),
-    transaction_id int8 not null references transaction,
-    username text unique not null
-);
-
-create table transaction_set_base_keyring (
-    id int8 not null primary key default nextval('version_identifier'),
-    transaction_id int8 not null references transaction
-);
 create table transaction_add_container (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null references transaction,
@@ -651,7 +640,7 @@ create table transaction_add_container_session_key (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null,
     name_hmac bytea not null,
-    latest_record_id int8 not null,
+    latest_record_id int8,
     signature bytea not null,
     supercede_key int8,
     constraint signature_len
@@ -662,7 +651,7 @@ create table transaction_add_container_session_key_share (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
-    latest_record_id int8 not null default 0,
+    latest_record_id int8,
     to_account_id int8 not null,
     session_key_ciphertext bytea not null,
     hmac_key_ciphertext bytea not null
@@ -672,7 +661,7 @@ create table transaction_delete_container_session_key_share (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
-    latest_record_id int8 not null default 0,
+    latest_record_id int8,
     container_session_key_id int8 not null,
     to_account_id int8 not null
 );
@@ -681,7 +670,7 @@ create table transaction_add_container_record (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
-    latest_record_id int8 not null default 0,
+    latest_record_id int8,
     hmac bytea not null,
     payload_iv bytea not null,
     payload_ciphertext bytea not null
