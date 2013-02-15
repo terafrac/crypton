@@ -14,6 +14,6 @@ process.configFile = program.config;
 var app = require('./app');
 var start = function start() { app.listen(program.port); };
 
-if (!module.parent) {
+if (require.main === module) {
   start();
 }

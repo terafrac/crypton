@@ -1,109 +1,62 @@
-var datastore = require('./');
-var connect = datastore.connect;
+'use strict';
 
-/*
-* Saves a generated user object
-* Creates an "account" row
-* Creates a "base_keyring" row
-* Associates them
-*/
-datastore.saveUser = function (user, callback) {
+var connect = require('./').connect;
+
+
+exports.saveAccount = function saveAccount(account, callback) {
   connect(function (client) {
     client.query('begin');
+    client.query({
+      text: "insert into account (username, base_keyring_id) "
+          + "values ($1, nextval('version_identifier')) "
+          + "returning account_id, base_keyring_id",
+      values: [account.username]
+    }, function (err, result) {
 
-    var accountQuery = {
-      text: 'insert into account ("username") values ($1) returning account_id',
-      values: [ user.username ]
-    };
-
-    client.query(accountQuery, function (err, result) {
       if (err) {
+        client.query('rollback');
         console.log(err);
         callback('Database error');
-        // FIXME: rollback the database transaction
         return;
       }
-
-      var accountId = result.rows[0].account_id;
-
-      var columns = [
-        'account_id',
-        'pubkey_serialized',
-        'salt_key',
-        'salt_challenge',
-        'challenge_key',
-        'keypair_iv',
-        'keypair_serialized_ciphertext',
-        'symkey_ciphertext',
-        'container_name_hmac_key_iv',
-        'container_name_hmac_key_ciphertext',
-        'hmac_key_iv',
-        'hmac_key_ciphertext'
-      ];
-
-      var keyringQuery = {
-        /*jslint multistr: true*/
-        text: "insert into base_keyring (\"" + columns.join('", "') + "\") \
-          values ($1, $2, \
-          decode($3, 'hex'), decode($4, 'hex'), decode($5, 'hex'), \
-          decode($6, 'hex'), decode($7, 'hex'), decode($8, 'hex'), \
-          decode($9, 'hex'), decode($10, 'hex'), decode($11, 'hex'), decode($12, 'hex')) \
-          returning base_keyring_id",
-        /*jslint multistr: false*/
+      client.query({
+        text: "insert into base_keyring ("
+            + "  base_keyring_id, account_id,"
+            + "  challenge_key, challenge_key_salt,"
+            + "  keypair_salt, keypair_iv, keypair, pubkey, symkey,"
+            + "  container_name_hmac_key_iv, container_name_hmac_key,"
+            + "  hmac_key_iv, hmac_key"
+            + ") values ("
+            + "  $1, $2,"
+            + "  decode($3, 'hex'), decode($4, 'hex'), decode($5, 'hex'),"
+            + "  decode($6, 'hex'), decode($7, 'hex'), decode($8, 'hex'),"
+            + "  decode($9, 'hex'), decode($10, 'hex'), decode($11, 'hex'),"
+            + "  decode($12, 'hex'), decode($13, 'hex')"
+            + ")",
         values: [
-          accountId,
-          user.pubKey,
-          user.saltKey,
-          user.saltChallenge,
-          user.challengeKey,
-          user.keypairIv,
-          user.keypairSerializedCiphertext,
-          user.symkeyCiphertext,
-          user.containerNameHmacKeyIv,
-          user.containerNameHmacKeyCiphertext,
-          user.hmacKeyIv,
-          user.hmacKeyCiphertext
+          result.rows[0].base_keyring_id,
+          result.rows[0].account_id,
+          account.challengeKey, account.challengeKeySalt,
+          account.keypairSalt, account.keypairIv, account.keypair,
+          account.pubkey, account.symkey,
+          account.containerNameHmacKeyIv, account.containerNameHmacKey,
+          account.hmacKeyIv, account.hmacKey
         ]
-      };
+      }, function (err) {
 
-      client.query(keyringQuery, function (err, result) {
         if (err) {
+          client.query('rollback');
           console.log(err);
           callback('Database error');
           return;
         }
-
-        var associationQuery = {
-          text: 'update account set base_keyring_id = $1 where account_id = $2',
-          values: [
-            result.rows[0].base_keyring_id,
-            accountId
-          ]
-        };
-
-        client.query(associationQuery, function (err, result) {
-          if (err) {
-            console.log(err);
-            callback('Database error');
-            return;
-          }
-
-          client.query('commit', function (err, result) {
-            if (err) {
-              console.log(err);
-              callback('Database error');
-              return;
-            }
-
-            callback();
-          });
-        });
+        client.query('commit', function () { callback(); });
       });
     });
   });
 };
 
-datastore.getUser = function (username, callback) {
+exports.getUser = function (username, callback) {
   connect(function (client) {
     var query = {
       /*jslint multistr: true*/

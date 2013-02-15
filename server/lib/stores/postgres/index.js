@@ -1,9 +1,13 @@
 'use strict';
 
-var datastore = module.exports = {};
+function extend(modName) {
+  var mod = require(modName);
+  for (var i in mod) {
+    exports[i] = mod[i];
+  }
+}
 
-require('./util');
-require('./account');
-require('./challenge');
-require('./transaction');
-
+extend('./util');
+extend('./account');
+extend('./challenge');
+extend('./transaction');

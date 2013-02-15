@@ -44,7 +44,7 @@ identifiers to IDs.
 These are similar to Nimbus.io''s ID Translator.
     https://nimbus.io/dev/trac/browser/Nimbus.IO/tools/id_translator.py?rev=5f0f3e26389e9fc75c95ddc5de9599eefef0ec7a
 ';
-CREATE TABLE ACCOUNT (
+CREATE TABLE account (
     account_id int8 not null primary key default nextval('version_identifier'),
     creation_time timestamp not null default current_timestamp,
     username text unique not null,
