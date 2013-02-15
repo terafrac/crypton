@@ -39,10 +39,9 @@
     var containerNameHmac = CryptoJS.HmacSHA256(
       containerName,
       this.account.containerNameHmacKey
-    );
+    ).toString();
 
     new crypton.Transaction(this, function (err, tx) {
-console.log(arguments);
       tx.save({
         type: 'addContainer',
         containerNameHmac: containerNameHmac

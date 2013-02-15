@@ -3,22 +3,40 @@ var connect = datastore.connect;
 
 datastore.createTransaction = function (accountId, callback) {
   connect(function (client) {
-    console.log(accountId);
     var query = {
       text: 'insert into transaction ("account_id") values ($1) returning transaction_id',
       values: [ accountId ]
     };
 
     client.query(query, function (err, result) {
-      console.log(arguments);
-      callback();
+      if (err) {
+        console.log(err);
+        callback('Database error');
+        return;
+      }
+
+      callback(null, result.rows[0].transaction_id);
     });
   });
 };
 
 datastore.getTransaction = function (token, callback) {
   connect(function (client) {
-    callback();
+    var query = {
+      text: 'select * from transaction where transaction_id = $1',
+      values: [ token ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        console.log(err);
+        callback('Database error');
+        return;
+      }
+
+      // massage
+      callback(null, result.rows[0]);
+    });
   });
 };
 

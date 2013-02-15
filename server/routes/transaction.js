@@ -7,7 +7,6 @@ app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
 
   db.createTransaction(accountId, function (err, token) {
-console.log(arguments);
     if (err) {
       res.send({
         success: false,
@@ -18,19 +17,18 @@ console.log(arguments);
 
     res.send({
       success: true,
-      transactionToken: token
+      token: token
     });
   });
 });
 
 // start a transaction, get a transaction token
 app.post('/transaction/:token', verifySession, function (req, res) {
-  console.log(req.body);
   var data = req.body.data;
   var token = req.params.token;
   var account = req.params.accountId;
 
-  db.updateTransaction(token, account, data, function (err, token) {
+  db.updateTransaction(token, account, data, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -48,6 +46,7 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 // commit a transaction
 app.post('/transaction/:token/commit', verifySession, function (req, res) {
   var token = req.params.token;
+  res.send('');
 });
 
 // abort a transaction w/o committing

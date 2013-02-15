@@ -45,7 +45,7 @@ var fileContentsSync = function fileContentsSync(path, length, position) {
   return contents.toString('binary');
 };
 
-app.use(express.logger());
+app.use(express.logger('dev'));
 app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());

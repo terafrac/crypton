@@ -17,7 +17,6 @@
     ];
 
     this.create(function (err, token) {
-console.log(arguments);
       if (err) {
         console.log(err);
         callback(err);
@@ -32,11 +31,9 @@ console.log(arguments);
 
   Transaction.prototype.create = function (callback) {
     var url = crypton.url() + '/transaction/create';
-console.log(url);
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .end(function (res) {
-console.log(res);
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
         return;
@@ -61,7 +58,7 @@ console.log(res);
 
   Transaction.prototype.saveChunk = function (chunk, callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/create';
+    var url = crypton.url() + '/transaction/' + this.token;
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .send(chunk)
