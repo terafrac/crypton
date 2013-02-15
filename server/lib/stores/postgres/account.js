@@ -3,6 +3,8 @@
 var connect = require('./').connect;
 
 
+/* Save a new account
+ * Add keyring info to it */
 exports.saveAccount = function saveAccount(account, callback) {
   connect(function (client) {
     client.query('begin');
@@ -64,46 +66,55 @@ exports.saveAccount = function saveAccount(account, callback) {
   });
 };
 
-exports.getUser = function (username, callback) {
-  connect(function (client) {
-    var query = {
-      /*jslint multistr: true*/
-      text: 'select * from account, base_keyring where account.username = $1 \
-        and base_keyring.account_id = account.account_id',
-      /*jslint multistr: false*/
-      values: [ username ]
-    };
 
-    client.query(query, function (err, result) {
+/* Get an account and its keyring */
+exports.getAccount = function getAccount(username, callback) {
+  connect(function (client) {
+    client.query({
+      text: "select username,"
+          + "  encode(base_keyring_id, 'hex') as base_keyring_id,"
+          + "  encode(account_id, 'hex') as account_id,"
+          + "  encode(challenge_key, 'hex') as challenge_key,"
+          + "  encode(challenge_key_salt, 'hex') as challenge_key_salt,"
+          + "  encode(keypair_salt, 'hex') as keypair_salt,"
+          + "  encode(keypair_iv, 'hex') as keypair_iv,"
+          + "  encode(keypair, 'hex') as keypair,"
+          + "  encode(pubkey, 'hex') as pubkey,"
+          + "  encode(symkey, 'hex') as symkey,"
+          + "  encode(container_name_hmac_key_iv, 'hex')"
+          + "    as container_name_hmac_key_iv,"
+          + "  encode(container_name_hmac_key, 'hex')"
+          + "    as container_name_hmac_key,"
+          + "  encode(hmac_key_iv, 'hex') as hmac_key_iv,"
+          + "  encode(hmac_key, 'hex') as hmac_key "
+          + "from account join base_keyring using (base_keyring_id) "
+          + "where username=$1",
+      values: [username]
+    }, function (err, result) {
+
       if (err) {
-        console.log(err);
-        callback('Database error');
+        if (err.code === '23514') {
+          callback('Account not found.');
+        } else {
+          console.log('Unhandled database error: ' + err);
+          callback('Database error.');
+        }
         return;
       }
-
-      if (!result.rows || !result.rows.length) {
-        callback('User does not exist');
-      } else {
-        var row = result.rows[0];
-        var user = {
-          accountId: row.account_id,
-          username: row.username,
-          keyringId: row.base_keyring_id,
-          saltKey: row.salt_key.toString('hex'),
-          saltChallenge: row.salt_challenge.toString('hex'),
-          challengeKey: row.challenge_key.toString('hex'),
-          keypairIv: row.keypair_iv.toString('hex'),
-          keypairSerializedCiphertext: row.keypair_serialized_ciphertext.toString('hex'),
-          pubKey: row.pubkey_serialized.toString('hex'),
-          symkeyCiphertext: row.symkey_ciphertext.toString('hex'),
-          containerNameHmacKeyIv: row.container_name_hmac_key_iv.toString('hex'),
-          containerNameHmacKeyCiphertext: row.container_name_hmac_key_ciphertext.toString('hex'),
-          hmacKeyIv: row.hmac_key_iv.toString('hex'),
-          hmacKeyCiphertext: row.hmac_key_ciphertext.toString('hex')
-        };
-
-        callback(null, user);
-      }
+      callback(null, {
+        username: result.rows[0].username,
+        challengeKey: result.rows[0].challenge_key,
+        challengeKeySalt: result.rows[0].challenge_key_salt,
+        keypairSalt: result.rows[0].keypair_salt,
+        keypairIv: result.rows[0].keypair_iv,
+        keypair: result.rows[0].keypair,
+        pubkey: result.rows[0].pubkey,
+        symkey: result.rows[0].symkey,
+        containerNameHmacKeyIv: result.rows[0].container_name_hmac_key_iv,
+        containerNameHmacKey: result.rows[0].container_name_hmac_key,
+        hmacKeyIv: result.rows[0].hmac_key_iv,
+        hmacKey: result.rows[0].hmac_key
+      });
     });
   });
 };

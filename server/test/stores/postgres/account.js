@@ -148,7 +148,35 @@ describe("postgres/account", function () {
   });
 
   describe("getAccount", function () {
-    it("returns account info and keyring");
+    it("returns account info and keyring", function (done) {
+      client.callbackArgs = [
+        [null, { rows: [{
+          username: newAccount.username,
+          challenge_key: newAccount.challengeKey,
+          challenge_key_salt: newAccount.challengeKeySalt,
+          keypair_salt: newAccount.keypairSalt,
+          keypair_iv: newAccount.keypairIv,
+          keypair: newAccount.keypair,
+          pubkey: newAccount.pubkey,
+          symkey: newAccount.symkey,
+          container_name_hmac_key_iv: newAccount.containerNameHmacKeyIv,
+          container_name_hmac_key: newAccount.containerNameHmacKey,
+          hmac_key_iv: newAccount.hmacKeyIv,
+          hmac_key: newAccount.hmacKey
+        }] }]
+      ];
+      account.getAccount(newAccount.username, function (err, theAccount) {
+        assert.deepEqual(theAccount, newAccount);
+        var expected = [
+          {
+            text: /^select username,.+ from account join base_keyring /,
+            values: [newAccount.username]
+          }
+        ];
+        assertQueryListMatches(client.queries, expected);
+        done();
+      });
+    });
   });
 
   describe("getChallenge", function () {
