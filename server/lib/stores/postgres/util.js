@@ -4,6 +4,25 @@ var pg = require('pg');
 var datastore = require('./');
 
 
+datastore.util = {};
+
+// turns under_scores into camelCase
+datastore.util.camelize = function (str) {
+  return str.replace(/\_(.)/g, function (x, chr) {
+     return chr.toUpperCase();
+  });
+};
+
+datastore.util.camelizeObject = function (obj) {
+  var newObj = {};
+
+  for (var i in obj) {
+    newObj[datastore.util.camelize(i)] = obj[i];
+  }
+
+  return newObj;
+};
+
 // callback with a client. crash the whole app on error.
 var connect = datastore.connect = function connect(callback) {
   var config = process.app.config.database;

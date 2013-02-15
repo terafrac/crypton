@@ -41,9 +41,14 @@ $(document).ready(function () {
       progress.value = ++steps;
       status.innerHTML = steps;
     }, function done (err, account) {
-      console.log(account);
       progress.value = 2048;
-      status.innerHTML = 'done';
+      if (err) {
+        console.log(err);
+        status.innerHTML = err;
+      } else {
+        console.log(account);
+        status.innerHTML = 'done';
+      }
     });
   });
 });

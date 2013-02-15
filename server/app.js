@@ -17,11 +17,11 @@ var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Methods',
              'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers',
-             'x-requested-with,content-type');
+             'x-requested-with,content-type,session-identifier');
   next();
 };
 
-app.use(express.logger());
+app.use(express.logger('dev'));
 app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
@@ -37,5 +37,9 @@ app.use(connect.session({
     secure: false // TODO true when we add SSL
   }
 }));
+
+app.options('/*', function (req, res) {
+  res.send('');
+});
 
 require('./routes');

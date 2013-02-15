@@ -21,7 +21,7 @@
     // TODO else load from server
 
     callback('Container does not exist');
-  }
+  };
 
   Session.prototype.create = function (containerName, callback) {
     for (var i in this.containers) {
@@ -31,11 +31,46 @@
       }
     }
 
-    var container = new crypton.Container();
-    container.name = containerName;
-    container.session = this;
-    this.containers.push(container);
-    callback(null, container);
-  }
+    var sessionKey = crypton.randomBytes(32);
+    var hmacKey = crypton.randomBytes(32);
+    var signature = 'hello'; // TODO sign with private key
+    var sessionKeyCiphertext = this.account.keypair.encrypt(sessionKey.toString());
+    var hmacKeyCiphertext = this.account.keypair.encrypt(hmacKey.toString());
+    var containerNameHmac = CryptoJS.HmacSHA256(
+      containerName,
+      this.account.containerNameHmacKey
+    ).toString();
+
+    var that = this;
+    new crypton.Transaction(this, function (err, tx) {
+      tx.save({
+        type: 'addContainer',
+        containerNameHmac: containerNameHmac
+      });
+
+      tx.save({
+        type: 'addContainerSessionKey',
+        containerNameHmac: containerNameHmac,
+        signature: signature
+      });
+
+      tx.save({
+        type: 'addContainerSessionKeyShare',
+        containerNameHmac: containerNameHmac,
+        sessionKeyCiphertext: sessionKeyCiphertext,
+        hmacKeyCiphertext: hmacKeyCiphertext
+      });
+
+      tx.commit(function () {
+        var container = new crypton.Container();
+        container.name = containerName;
+        container.sessionKey = sessionKey;
+        container.hmacKey = hmacKey;
+        container.session = that;
+        that.containers.push(container);
+        callback(null, container);
+      });
+    });
+  };
 })();
 

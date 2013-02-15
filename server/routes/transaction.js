@@ -4,9 +4,9 @@ var verifySession = require('../lib/middleware').verifySession;
 
 // start a transaction, get a transaction token
 app.post('/transaction/create', verifySession, function (req, res) {
-  var account = req.session.accountId;
+  var accountId = req.session.accountId;
 
-  db.createTransaction(account, function (err, token) {
+  db.createTransaction(accountId, function (err, token) {
     if (err) {
       res.send({
         success: false,
@@ -17,19 +17,18 @@ app.post('/transaction/create', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      transactionToken: token
+      token: token
     });
   });
 });
 
 // start a transaction, get a transaction token
 app.post('/transaction/:token', verifySession, function (req, res) {
-  console.log(req.body);
-  var data = req.body.data;
+  var data = req.body;
   var token = req.params.token;
-  var account = req.params.accountId;
+  var account = req.session.accountId;
 
-  db.updateTransaction(token, account, data, function (err, token) {
+  db.updateTransaction(token, account, data, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -45,12 +44,15 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 });
 
 // commit a transaction
-app.post('/transaction/:token/commit', function (req, res) {
+app.post('/transaction/:token/commit', verifySession, function (req, res) {
   var token = req.params.token;
+  res.send({
+    success: true
+  });
 });
 
 // abort a transaction w/o committing
-app.del('/transaction/:token', function (req, res) {
+app.del('/transaction/:token', verifySession, function (req, res) {
   var token = req.params.token;
 
   // TODO make sure transaction belongs to session
