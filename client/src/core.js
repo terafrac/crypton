@@ -198,7 +198,6 @@ var crypton = {};
         superagent.post(crypton.url() + '/account/' + username + '/answer')
           .send(response)
           .end(function (res) {
-            console.log(res.body);
             if (!res.body || res.body.success !== true) {
               callback(res.body.error);
               return;

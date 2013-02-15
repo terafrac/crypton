@@ -41,6 +41,7 @@
       this.account.containerNameHmacKey
     ).toString();
 
+    var that = this;
     new crypton.Transaction(this, function (err, tx) {
       tx.save({
         type: 'addContainer',
@@ -48,8 +49,9 @@
       });
 
       tx.save({
-        type: 'addContainerSessionKey'
-        // ??
+        type: 'addContainerSessionKey',
+        containerNameHmac: containerNameHmac,
+        signature: signature
       });
 
       tx.save({
@@ -64,10 +66,10 @@
         container.name = containerName;
         container.sessionKey = sessionKey;
         container.hmacKey = hmacKey;
-        container.session = this;
-        this.containers.push(container);
+        container.session = that;
+        that.containers.push(container);
         callback(null, container);
-      }.bind(this));
+      });
     });
   };
 })();

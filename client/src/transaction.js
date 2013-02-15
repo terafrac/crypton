@@ -47,11 +47,13 @@
   Transaction.prototype.save = function () {
     this.verify();
     for (var i in arguments) {
-      console.log(i + ': ' + arguments[i]);
+      console.log(typeof arguments[i]);
       var chunk = arguments[i];
       this.chunks.push(chunk);
-      this.saveChunk(chunk, function () {
-        console.log(arguments);
+      this.saveChunk(chunk, function (err) {
+        if (err) {
+          console.log(err);
+        }
       });
     }
   };
@@ -74,7 +76,7 @@
   };
 
   // push chunks to the server
-  Transaction.prototype.commit = function () {
+  Transaction.prototype.commit = function (callback) {
     this.verify();
     var url = crypton.url() + '/transaction/' + this.token + '/commit';
     superagent.post(url)
