@@ -72,8 +72,7 @@ exports.getAccount = function getAccount(username, callback) {
   connect(function (client) {
     client.query({
       text: "select username,"
-          + "  encode(base_keyring_id, 'hex') as base_keyring_id,"
-          + "  encode(account_id, 'hex') as account_id,"
+          + "  account.account_id, base_keyring_id,"
           + "  encode(challenge_key, 'hex') as challenge_key,"
           + "  encode(challenge_key_salt, 'hex') as challenge_key_salt,"
           + "  encode(keypair_salt, 'hex') as keypair_salt,"
@@ -87,22 +86,24 @@ exports.getAccount = function getAccount(username, callback) {
           + "    as container_name_hmac_key,"
           + "  encode(hmac_key_iv, 'hex') as hmac_key_iv,"
           + "  encode(hmac_key, 'hex') as hmac_key "
-          + "from account join base_keyring using (base_keyring_id) "
+          + "from account left join base_keyring using (base_keyring_id) "
           + "where username=$1",
       values: [username]
     }, function (err, result) {
-
       if (err) {
-        if (err.code === '23514') {
-          callback('Account not found.');
-        } else {
-          console.log('Unhandled database error: ' + err);
-          callback('Database error.');
-        }
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
         return;
       }
+      if (!result.rows.length) {
+        callback('Account not found.');
+        return;
+      }
+
       callback(null, {
         username: result.rows[0].username,
+        accountId: result.rows[0].account_id,
+        keyringId: result.rows[0].base_keyring_id,
         challengeKey: result.rows[0].challenge_key,
         challengeKeySalt: result.rows[0].challenge_key_salt,
         keypairSalt: result.rows[0].keypair_salt,

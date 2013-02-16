@@ -1,51 +1,48 @@
-var datastore = require('./');
-var connect = datastore.connect;
+'use strict';
 
-datastore.saveChallenge = function (user, expectedAnswerDigestHex, callback) {
+var connect = require('./').connect;
+
+
+/* Save a challenge answer
+ * Return the challengeId */
+exports.saveChallengeAnswer = function saveChallengeAnswer(
+  account, answerDigest, callback
+) {
   connect(function (client) {
-    var query = {
-      /*jslint multistr: true*/
-      text: "insert into challenge (account_id, base_keyring_id, expected_answer_digest) \
-        values ($1, $2, decode($3, 'hex')) returning challenge_id",
-      /*jslint multistr: false*/
+    client.query({
+      text: "insert into challenge ("
+          + "  account_id, base_keyring_id, expected_answer_digest"
+          + ") values ($1, $2, decode($3, 'hex')) returning challenge_id",
       values: [
-        user.accountId,
-        user.keyringId,
-        expectedAnswerDigestHex
+        account.accountId,
+        account.keyringId,
+        answerDigest
       ]
-    };
-
-    client.query(query, function (err, result) {
+    }, function (err, result) {
       if (err) {
-        console.log(err);
-        callback('Database error');
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
         return;
       }
-
       callback(null, result.rows[0].challenge_id);
     });
   });
 };
 
-datastore.getChallenge = function (challengeId, callback) {
+exports.getChallengeAnswer = function (challengeId, callback) {
   connect(function (client) {
-    var query = {
-      text: 'select * from challenge where challenge_id = $1',
-      values: [
-        challengeId
-      ]
-    };
-
-    client.query(query, function (err, result) {
+    client.query({
+      text: "select encode(expected_answer_digest, 'hex') "
+          + "from challenge where challenge_id=$1",
+      values: [ challengeId ]
+    }, function (err, result) {
       if (err) {
-        console.log(err);
-        callback('Database error');
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
         return;
       }
-
-      if (!result.rows || !result.rows[0]) {
-        console.log(err);
-        callback('Unknown challenge id');
+      if (!result.rows.length) {
+        callback('Challenge not found.');
         return;
       }
 

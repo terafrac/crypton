@@ -152,6 +152,8 @@ describe("postgres/account", function () {
       client.callbackArgs = [
         [null, { rows: [{
           username: newAccount.username,
+          account_id: accountId,
+          base_keyring_id: baseKeyringId,
           challenge_key: newAccount.challengeKey,
           challenge_key_salt: newAccount.challengeKeySalt,
           keypair_salt: newAccount.keypairSalt,
@@ -166,10 +168,17 @@ describe("postgres/account", function () {
         }] }]
       ];
       account.getAccount(newAccount.username, function (err, theAccount) {
-        assert.deepEqual(theAccount, newAccount);
+        var expectedAccount = {
+          accountId: accountId,
+          keyringId: baseKeyringId
+        };
+        for (var i in newAccount) {
+          expectedAccount[i] = newAccount[i];
+        }
+        assert.deepEqual(theAccount, expectedAccount);
         var expected = [
           {
-            text: /^select username,.+ from account join base_keyring /,
+            text: /^select username,.+ from account left join base_keyring /,
             values: [newAccount.username]
           }
         ];
@@ -177,13 +186,15 @@ describe("postgres/account", function () {
         done();
       });
     });
-  });
 
-  describe("getChallenge", function () {
-    it("generates a login challenge");
-  });
-
-  describe("verifyChallenge", function () {
-    it("verifies a challenge answer");
+    it("returns an error if account not found", function (done) {
+      client.callbackArgs = [
+        [null, { rows: [] }]
+      ];
+      account.getAccount(newAccount.username, function (err) {
+        assert.equal(err, 'Account not found.');
+        done();
+      });
+    });
   });
 });

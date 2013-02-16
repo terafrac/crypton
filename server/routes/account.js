@@ -2,9 +2,8 @@
 
 var app = process.app;
 var db = app.datastore;
-var crypto = require('crypto');
-var uuid = require('node-uuid');
 var middleware = require('../lib/middleware');
+var challenge = require('../lib/challenge');
 
 /*
  * Save account to server
@@ -32,7 +31,7 @@ app.post('/account', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username', function (req, res) {
-  db.getUser(req.params.username, function (err, user) {
+  db.getAccount(req.params.username, function (err, account) {
     if (err) {
       res.send({
         success: false,
@@ -41,39 +40,28 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    // create a challenge
-    var randomString = crypto.randomBytes(32);
-    var ivRaw = crypto.createHash('sha256').update(uuid.v1()).digest().substr(0, 16);
-    var iv = new Buffer(ivRaw, 'binary');
-    var key = new Buffer(user.challengeKey, 'hex');
-    var challengeCipher = crypto.createCipheriv('aes-256-cfb', key, iv);
-    var challenge = challengeCipher.update(randomString, 'binary', 'hex');
+    var newChallenge = challenge.makeChallenge(account);
+    db.saveChallengeAnswer(
+      account, newChallenge.answerDigest,
+      function (err, challengeId) {
+        if (err) {
+          res.send({
+            success: false,
+            error: err
+          });
+          return;
+        }
 
-    // compute the expected answer to the challenge
-    var time = +new Date() + ''; // must be cast to string for cipher
-    var answerCipher = crypto.createCipheriv('aes-256-cfb', randomString, iv);
-    var expectedAnswer = answerCipher.update(time, 'binary', 'hex');
-    var expectedAnswerDigest = crypto.createHash('sha256').update(expectedAnswer).digest('hex');
-
-    // store it
-    db.saveChallenge(user, expectedAnswerDigest, function (err, challengeId) {
-      if (err) {
-        res.send({
-          success: false,
-          error: err
-        });
-        return;
+        var response = {
+          success: true,
+          challengeId: challengeId // TODO public_id(challengeId)
+        };
+        for (var i in newChallenge.challenge) {
+          response[i] = newChallenge.challenge[i];
+        }
+        res.send(response);
       }
-
-      res.send({
-        success: true,
-        challengeId: challengeId, // TODO public_id(challengeId)
-        challenge: challenge,
-        saltChallenge: user.saltChallenge,
-        iv: iv.toString('hex'),
-        time: time
-      });
-    });
+    );
   });
 });
 
