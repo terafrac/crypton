@@ -278,8 +278,6 @@ create table container_session_key (
     creation_time timestamp not null default current_timestamp,
     signature bytea not null,
     supercede_time timestamp
-    constraint signature_len
-        check (octet_length(signature)=32)
 );
 CREATE UNIQUE INDEX container_session_key_active_idx
     ON container_session_key (container_id)
@@ -320,7 +318,7 @@ create table container_session_key_share (
     transaction_id int8 not null,
     session_key_ciphertext bytea not null,
     hmac_key_ciphertext bytea not null,
-    deletion_time timestamp not null
+    deletion_time timestamp
 );
 
 COMMENT ON TABLE container_session_key_share IS
@@ -642,9 +640,7 @@ create table transaction_add_container_session_key (
     name_hmac bytea not null,
     latest_record_id int8,
     signature bytea not null,
-    supercede_key int8,
-    constraint signature_len
-        check (octet_length(signature)=32)
+    supercede_key int8
 );
 
 create table transaction_add_container_session_key_share (
