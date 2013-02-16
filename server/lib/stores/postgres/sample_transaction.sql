@@ -1,6 +1,13 @@
 /* Example SQL code showing committing a transaction on an unsharded database,
  * using just SQL commands. */
 
+/* run this by doing:
+    make clean-test-db
+    make setup-test-environment
+    sudo -u postgres psql -f server/lib/stores/postgres/sample_transaction.sql
+
+
+/* give us readable, long form output from all of the test selects */
 \x                        
 
 /* first we build up a test account, and a dummy transaction, so we cant test
@@ -8,7 +15,8 @@
 
 
 begin;
-/* create test account */
+/* CREATE TEST ACCOUNT */
+
 insert into account (username, base_keyring_id) values(
     'test_username', (select nextval('version_identifier')));
 
@@ -44,6 +52,7 @@ commit;
 
 /* CREATE TEST TRANSACTION */
 
+begin;
 insert into transaction (account_id) 
     select account_id from account where username='test_username';
    
@@ -113,13 +122,20 @@ update transaction
 commit;
 
 /* COMMIT THE TRANSACTION: PART 1: PRECALCULATION */
+
+/* we make temp versions of each of the transaction tables, which we can join
+ * with the original tables, and add any extra columns we need to calculate.
+ */
+
 begin;
+
 create temp table txtmp_add_container as 
     select tac.id,
            tac.name_hmac,
            nextval('version_identifier') as container_id,
            t.account_id,
-           null::int8 as latest_record_id
+           /* we'll update latest_record_id below */
+           null::int8 as latest_record_id 
       from transaction t
       join transaction_add_container tac using (transaction_id)
      where account_id=(select account_id 
@@ -271,6 +287,7 @@ commit;
 */
 
 /* TODO:
+    mark the transaction as committed in the transaction table
     apply supercede_time to previous session keys when adding new session keys
     schema change: add transaction_id to container
     schema change: add container_session_key_id to container_record to resolve
