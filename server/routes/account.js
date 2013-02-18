@@ -4,6 +4,7 @@ var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
 var challenge = require('../lib/challenge');
+var crypto = require('crypto');
 
 /*
  * Save account to server
@@ -82,6 +83,8 @@ app.post('/account/:username/answer', function (req, res) {
     return;  
   }
 
+  var answerDigest = crypto.createHash('sha256').update(answer).digest('hex');
+
   db.getChallengeAnswer(challengeId, function (err, challenge) {
     if (err) {
       res.send({
@@ -108,7 +111,8 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      if (challenge.expectedAnswerDigest != answer) {
+      // TODO: use constant time compare here to avoid timing attack
+      if (challenge.expectedAnswerDigest != answerDigest) {
         res.send({
           success: false,
           error: 'Incorrect password'

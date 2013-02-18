@@ -14,7 +14,7 @@ describe('core functionality', function () {
         err = arguments[0];
         user = arguments[1];
         done();
-      });
+      }, {keypairBits: 512, debug: true, save: false});
     });
 
     it('should exist', function () {

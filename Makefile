@@ -11,4 +11,11 @@ test-unit-client:
 test-integration:
 	$(MAKE) -C integration_tests test
 
-.PHONY: test test-unit test-unit-server test-unit-client test-integration
+clean:
+	$(MAKE) -C client clean
+	$(MAKE) -C integration_tests clean-test-db
+
+setup-test-environment:
+	$(MAKE) -C integration_tests setup-test-environment
+
+.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment

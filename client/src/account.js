@@ -89,10 +89,10 @@
       hmacKeyCiphertext: this.hmacKeyCiphertext,
       hmacKeyIv: this.hmacKeyIv,
       keypairIv: this.keypairIv,
-      keypairSerializedCiphertext: this.keypairSerializedCiphertext,
+      keypairCiphertext: this.keypairCiphertext,
       pubKey: this.pubKey,
-      saltChallenge: this.saltChallenge,
-      saltKey: this.saltKey,
+      challengeKeySalt: this.challengeKeySalt,
+      keypairSalt: this.keypairSalt,
       symkeyCiphertext: this.symkeyCiphertext,
       username: this.username
     };

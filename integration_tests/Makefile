@@ -14,7 +14,7 @@ setup-test-environment:
 	./bin/setup_test_environment.sh
 
 clean-test-db:
-	sudo -u postgres dropdb crypton_test
+	-sudo -u postgres dropdb crypton_test
 
 crypton-client:
 	$(MAKE) -C ../client

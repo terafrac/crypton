@@ -25,13 +25,13 @@ var crypton = {};
     };
 
     for (var param in defaults) {
-      options[param] = options[param] || defaults[param];
+      options[param] = options.hasOwnProperty(param) ? options[param] : defaults[param];
     }
 
     var account = new crypton.Account();
     account.username = username;
-    account.saltKey = randomBytes(32);
-    account.saltChallenge = randomBytes(32);
+    account.keypairSalt = randomBytes(32);
+    account.challengeKeySalt = randomBytes(32);
 
     var containerNameHmacKey = randomBytes(32);
     var symkey = randomBytes(32);
@@ -60,7 +60,7 @@ var crypton = {};
 
       step();
 
-      account.challengeKey = CryptoJS.PBKDF2(passphrase, account.saltChallenge, { 
+      account.challengeKey = CryptoJS.PBKDF2(passphrase, account.challengeKeySalt, { 
         keySize: 256 / 32,
         // iterations: 1000
       }).toString();
@@ -71,7 +71,7 @@ var crypton = {};
         console.log("generateAccount 5");
       }
 
-      var keypairKey = CryptoJS.PBKDF2(passphrase, account.saltKey, {
+      var keypairKey = CryptoJS.PBKDF2(passphrase, account.keypairSalt, {
         keySize: 256 / 32,
         // iterations: 1000
       });
@@ -83,7 +83,7 @@ var crypton = {};
       }
 
       account.keypairIv = randomBytes(16);
-      account.keypairSerializedCiphertext = CryptoJS.AES.encrypt(
+      account.keypairCiphertext = CryptoJS.AES.encrypt(
         keypair.serialize(), keypairKey, {
           iv: account.keypairIv,
           mode: CryptoJS.mode.CFB,
@@ -122,10 +122,10 @@ var crypton = {};
       ).ciphertext.toString();
 
       // convert WordArrays to strings for serialization
-      account.saltChallenge = account.saltChallenge.toString();
-      account.saltKey = account.saltKey.toString();
+      account.challengeKeySalt = account.challengeKeySalt.toString();
+      account.keypairSalt = account.keypairSalt.toString();
       account.keypairIv = account.keypairIv.toString();
-      account.keypairSerializedCiphertext = account.keypairSerializedCiphertext;
+      account.keypairCiphertext = account.keypairCiphertext;
       account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
       account.containerNameHmacKeyCiphertext = account.containerNameHmacKeyCiphertext;
       account.hmacKeyIv = account.hmacKeyIv.toString();
@@ -180,19 +180,18 @@ var crypton = {};
           }
         );
 
+        var timeValueDigest = CryptoJS.SHA256(body.time).toString();
         var timeValueCiphertext = CryptoJS.AES.encrypt(
-          body.time, challenge, {
+          timeValueDigest, challenge, {
             iv: iv,
             mode: CryptoJS.mode.CFB,
             padding: CryptoJS.pad.NoPadding
           }
         ).ciphertext.toString();
 
-        var timeValueCiphertextDigest = CryptoJS.SHA256(timeValueCiphertext).toString();
-
         var response = {
           challengeId: body.challengeId,
-          answer: timeValueCiphertextDigest
+          answer: timeValueCiphertext
         };
 
         superagent.post(crypton.url() + '/account/' + username + '/answer')
