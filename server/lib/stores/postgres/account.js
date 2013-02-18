@@ -14,7 +14,6 @@ exports.saveAccount = function saveAccount(account, callback) {
           + "returning account_id, base_keyring_id",
       values: [account.username]
     }, function (err, result) {
-
       if (err) {
         client.query('rollback');
         if (err.code === '23505') {
@@ -25,7 +24,8 @@ exports.saveAccount = function saveAccount(account, callback) {
         }
         return;
       }
-      client.query({
+
+      var query = {
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
             + "  challenge_key, challenge_key_salt,"
@@ -35,21 +35,22 @@ exports.saveAccount = function saveAccount(account, callback) {
             + ") values ("
             + "  $1, $2,"
             + "  decode($3, 'hex'), decode($4, 'hex'), decode($5, 'hex'),"
-            + "  decode($6, 'hex'), decode($7, 'hex'), decode($8, 'hex'),"
+            + "  decode($6, 'hex'), decode($7, 'hex'), decode($8, 'base64'),"
             + "  decode($9, 'hex'), decode($10, 'hex'), decode($11, 'hex'),"
             + "  decode($12, 'hex'), decode($13, 'hex')"
             + ")",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
-          account.challengeKey, account.challengeKeySalt,
-          account.keypairSalt, account.keypairIv, account.keypair,
-          account.pubkey, account.symkey,
-          account.containerNameHmacKeyIv, account.containerNameHmacKey,
-          account.hmacKeyIv, account.hmacKey
+          account.challengeKey, account.saltChallenge,
+          account.saltKey, account.keypairIv, account.keypairSerializedCiphertext,
+          account.pubKey, account.symkeyCiphertext,
+          account.containerNameHmacKeyIv, account.containerNameHmacKeyCiphertext,
+          account.hmacKeyIv, account.hmacKeyCiphertext
         ]
-      }, function (err) {
+      };
 
+      client.query(query, function (err) {
         if (err) {
           client.query('rollback');
           if (err.code === '23514') {
@@ -78,7 +79,7 @@ exports.getAccount = function getAccount(username, callback) {
           + "  encode(keypair_salt, 'hex') as keypair_salt,"
           + "  encode(keypair_iv, 'hex') as keypair_iv,"
           + "  encode(keypair, 'hex') as keypair,"
-          + "  encode(pubkey, 'hex') as pubkey,"
+          + "  encode(pubkey, 'base64') as pubkey,"
           + "  encode(symkey, 'hex') as symkey,"
           + "  encode(container_name_hmac_key_iv, 'hex')"
           + "    as container_name_hmac_key_iv,"
