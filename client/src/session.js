@@ -40,6 +40,15 @@
       containerName,
       this.account.containerNameHmacKey
     ).toString();
+    var payloadIv = crypton.randomBytes(32);
+    var payloadCiphertext = CryptoJS.AES.encrypt(
+      JSON.stringify({}), hmacKey, {
+        iv: payloadIv,
+        mode: CryptoJS.mode.CFB,
+        padding: CryptoJS.pad.NoPadding
+      }
+    ).ciphertext.toString();
+    var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, hmacKey);
 
     var that = this;
     new crypton.Transaction(this, function (err, tx) {
@@ -56,6 +65,12 @@
           containerNameHmac: containerNameHmac,
           sessionKeyCiphertext: sessionKeyCiphertext,
           hmacKeyCiphertext: hmacKeyCiphertext
+        }, {
+          type: 'addContainerRecord',
+          containerNameHmac: containerNameHmac,
+          hmac: payloadHmac.toString(),
+          payloadIv: payloadIv.toString(),
+          payloadCiphertext: payloadCiphertext
         }
       ];
 

@@ -178,6 +178,38 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
   });
 };
 
+datastore.transaction.addContainerRecord = function (data, transaction, callback) {
+  connect(function (client) {
+    var query = {
+      /*jslint multistr: true*/
+      text: '\
+        insert into transaction_add_container_record \
+        (transaction_id, name_hmac, latest_record_id, \
+        hmac, paylod_iv, payload_ciphertext) \
+        values ($1, $2, $3, $4, $5, $6)',
+      /*jslint multistr: false*/
+      values: [
+        transaction.transactionId,
+        data.containerNameHmac,
+        data.latestRecordId,
+        data.hmac,
+        data.payloadIv,
+        data.payloadCiphertext
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        console.log(err);
+        callback('Database error');
+        return;
+      }
+
+      callback();
+    });
+  });
+};
+
 var commit = {};
 
 commit.request = function (transactionId, callback) {
