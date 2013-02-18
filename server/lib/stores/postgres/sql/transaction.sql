@@ -1,8 +1,8 @@
 
 begin;
 update transaction
-   set commit_start_time = current_timestamp
-       committer_hostname = {{hostname}}
+   set commit_start_time = current_timestamp,
+       committer_hostname = '{{hostname}}'
  where transaction_id={{transactionId}};
 commit;
 
