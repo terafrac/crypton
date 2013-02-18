@@ -43,32 +43,35 @@
 
     var that = this;
     new crypton.Transaction(this, function (err, tx) {
-      tx.save({
-        type: 'addContainer',
-        containerNameHmac: containerNameHmac
-      });
+      var chunks = [
+        {
+          type: 'addContainer',
+          containerNameHmac: containerNameHmac
+        }, {
+          type: 'addContainerSessionKey',
+          containerNameHmac: containerNameHmac,
+          signature: signature
+        }, {
+          type: 'addContainerSessionKeyShare',
+          containerNameHmac: containerNameHmac,
+          sessionKeyCiphertext: sessionKeyCiphertext,
+          hmacKeyCiphertext: hmacKeyCiphertext
+        }
+      ];
 
-      tx.save({
-        type: 'addContainerSessionKey',
-        containerNameHmac: containerNameHmac,
-        signature: signature
-      });
-
-      tx.save({
-        type: 'addContainerSessionKeyShare',
-        containerNameHmac: containerNameHmac,
-        sessionKeyCiphertext: sessionKeyCiphertext,
-        hmacKeyCiphertext: hmacKeyCiphertext
-      });
-
-      tx.commit(function () {
-        var container = new crypton.Container();
-        container.name = containerName;
-        container.sessionKey = sessionKey;
-        container.hmacKey = hmacKey;
-        container.session = that;
-        that.containers.push(container);
-        callback(null, container);
+      async.each(chunks, function (chunk, callback) {
+        tx.save(chunk, callback);
+      }.bind(this), function (err) {
+        // TODO handle err
+        tx.commit(function () {
+          var container = new crypton.Container();
+          container.name = containerName;
+          container.sessionKey = sessionKey;
+          container.hmacKey = hmacKey;
+          container.session = that;
+          that.containers.push(container);
+          callback(null, container);
+        });
       });
     });
   };

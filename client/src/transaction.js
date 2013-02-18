@@ -46,16 +46,24 @@
   // create diffs of container and add to chunks array
   Transaction.prototype.save = function () {
     this.verify();
-    for (var i in arguments) {
-      console.log(typeof arguments[i]);
-      var chunk = arguments[i];
-      this.chunks.push(chunk);
-      this.saveChunk(chunk, function (err) {
-        if (err) {
-          console.log(err);
-        }
-      });
+    var args = Array.prototype.slice.call(arguments);
+    var callback = args.pop();
+    if (typeof callback != 'function') {
+      args.push(callback);
+      callback = function () {};
     }
+
+    async.each(args, function (chunk, callback) {
+      // TODO check the type of the object
+      if (typeof chunk == 'function') {
+        callback();
+        return;
+      }
+
+      this.saveChunk(chunk, callback);
+    }.bind(this), function (err) {
+      callback(err);
+    });
   };
 
   Transaction.prototype.saveChunk = function (chunk, callback) {
@@ -65,7 +73,6 @@
       .set('session-identifier', this.session.id)
       .send(chunk)
       .end(function (res) {
-        console.log(res.body);
         if (!res.body || res.body.success !== true) {
           callback(res.body.error);
           return;

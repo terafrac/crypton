@@ -38,7 +38,22 @@ daemon() {
 
 compile() {
   echo "Compiling to crypton.js..."
-  make
+  mkdir -p dist
+  cat \
+    src/core.js \
+    src/account.js \
+    src/session.js \
+    src/container.js \
+    src/transaction.js \
+    src/peer.js \
+    src/message.js \
+    src/request.js \
+    src/diff.js \
+    src/crypto/*.js \
+    src/rsa/*.js \
+    src/vendor/*.js \
+    > dist/crypton.js
+  uglifyjs dist/crypton.js > dist/crypton.min.js
 }
 
 case $1 in
