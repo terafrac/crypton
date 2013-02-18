@@ -526,6 +526,20 @@ create table transaction (
     errors text /* change to json for pg 9.2 */
 );
 
+create view first_pending_commit_per_avatar as
+select *
+  from transaction t1
+ where commit_request_time is not null
+   and commit_start_time is null
+   and not exists (select 1 
+                     from transaction t2
+                    where commit_request_time is not null
+                      and commit_start_time is null
+                      and t2.transaction_id <> t1.transaction_id
+                      and t2.account_id = t1.account_id
+                      and t2.commit_request_time < t1.commit_request_time
+                    limit 1);
+
 CREATE INDEX transaction_commit_active ON transaction (account_id)
     where commit_start_time IS NOT NULL AND commit_finish_time IS NULL;
 CREATE INDEX transaction_commit_waiting ON transaction (account_id)
@@ -627,12 +641,20 @@ create table transaction_add_container (
     transaction_id int8 not null references transaction,
     name_hmac bytea not null
 );
+
+/* disallow adding the same container name twice in the same transaction */
+create unique index transaction_add_container_tx_name_idx
+    on transaction_add_container (transaction_id, name_hmac);
+
 create table transaction_delete_container (
     id int8 not null primary key default nextval('version_identifier'),
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
     latest_record_id int8 not null
 );
+/* disallow deleting the same container name twice in the same transaction */
+create unique index transaction_delete_container_tx_name_idx 
+    on transaction_delete_container (transaction_id, name_hmac);
 
 create table transaction_add_container_session_key (
     id int8 not null primary key default nextval('version_identifier'),
@@ -642,6 +664,10 @@ create table transaction_add_container_session_key (
     signature bytea not null,
     supercede_key int8
 );
+/* disallow adding more than one session key for the same container in the same
+ * transaction */
+create unique index transaction_add_container_session_key_tx_name_idx
+    on transaction_add_container_session_key (transaction_id, name_hmac);
 
 create table transaction_add_container_session_key_share (
     id int8 not null primary key default nextval('version_identifier'),
@@ -652,6 +678,11 @@ create table transaction_add_container_session_key_share (
     session_key_ciphertext bytea not null,
     hmac_key_ciphertext bytea not null
 );
+/* disallow adding more than one session key share for the same container to
+ * the same account in the same transaction */
+create unique index transaction_add_container_session_key_share_name_acct_idx 
+    on transaction_add_container_session_key_share 
+    (transaction_id, name_hmac, to_account_id);
 
 create table transaction_delete_container_session_key_share (
     id int8 not null primary key default nextval('version_identifier'),
@@ -661,6 +692,11 @@ create table transaction_delete_container_session_key_share (
     container_session_key_id int8 not null,
     to_account_id int8 not null
 );
+/* disallow deleting a session key share for the same container to the same
+ * account more than once per transaction */
+create unique index transaction_delete_container_session_key_share_acct_idx
+    on transaction_delete_container_session_key_share 
+    (transaction_id, name_hmac, to_account_id);
 
 create table transaction_add_container_record (
     id int8 not null primary key default nextval('version_identifier'),
@@ -716,5 +752,9 @@ create table transaction_delete_message (
     transaction_id int8 not null references transaction,
     message_id int8 not null
 );
+/* disallow deleting a message_id more than once per transaction */
+create unique index transaction_delete_message_msg_id_idx
+    on transaction_delete_message
+    (transaction_id, message_id);
 
 commit;
