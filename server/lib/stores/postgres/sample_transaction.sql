@@ -5,7 +5,7 @@
     make clean-test-db
     make setup-test-environment
     sudo -u postgres psql -f server/lib/stores/postgres/sample_transaction.sql
-
+*/
 
 /* give us readable, long form output from all of the test selects */
 \x                        
