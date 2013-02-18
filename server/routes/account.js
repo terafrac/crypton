@@ -56,9 +56,11 @@ app.post('/account/:username', function (req, res) {
           success: true,
           challengeId: challengeId // TODO public_id(challengeId)
         };
+
         for (var i in newChallenge.challenge) {
           response[i] = newChallenge.challenge[i];
         }
+
         res.send(response);
       }
     );
@@ -80,7 +82,7 @@ app.post('/account/:username/answer', function (req, res) {
     return;  
   }
 
-  db.getChallenge(challengeId, function (err, challenge) {
+  db.getChallengeAnswer(challengeId, function (err, challenge) {
     if (err) {
       res.send({
         success: false,
@@ -89,7 +91,7 @@ app.post('/account/:username/answer', function (req, res) {
       return;  
     }
 
-    db.getUser(req.params.username, function (err, user) {
+    db.getAccount(req.params.username, function (err, user) {
       if (err) {
         res.send({
           success: false,

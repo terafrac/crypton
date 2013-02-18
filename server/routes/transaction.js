@@ -46,8 +46,14 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 // commit a transaction
 app.post('/transaction/:token/commit', verifySession, function (req, res) {
   var token = req.params.token;
-  res.send({
-    success: true
+  var account = req.session.accountId;
+
+  db.requestTransactionCommit(token, account, function () {
+    console.log(arguments);
+
+    res.send({
+      success: true
+    });
   });
 });
 

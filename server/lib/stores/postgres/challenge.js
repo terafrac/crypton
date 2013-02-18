@@ -32,7 +32,7 @@ exports.saveChallengeAnswer = function saveChallengeAnswer(
 exports.getChallengeAnswer = function (challengeId, callback) {
   connect(function (client) {
     client.query({
-      text: "select encode(expected_answer_digest, 'hex') "
+      text: "select * "
           + "from challenge where challenge_id=$1",
       values: [ challengeId ]
     }, function (err, result) {
