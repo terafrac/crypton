@@ -17,8 +17,9 @@ exports.makeChallenge = function makeChallenge(account) {
   var time = +new Date() + ''; // must be cast to string for cipher
   cipher = crypto.createCipheriv('aes-256-cfb', randomString, iv);
   cipher.setAutoPadding(false);
-  var timeCiphertext = cipher.update(time, 'binary', 'hex');
-  var answerDigest = crypto.createHash('sha256').update(timeCiphertext).digest('hex');
+  var timeDigest = crypto.createHash('sha256').update(time).digest();
+  var answerDigest = crypto.createHash('sha256').update(
+    cipher.update(timeDigest)).digest('hex');
 
   return {
     challenge: {

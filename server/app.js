@@ -38,6 +38,12 @@ app.use(connect.session({
   }
 }));
 
+if (process.env.NODE_ENV === 'test') {
+  app.use('/examples', express.static(__dirname + '/../client/examples'));
+  app.use('/dist', express.static(__dirname + '/../client/dist'));
+}
+
+
 app.options('/*', function (req, res) {
   res.send('');
 });

@@ -14,6 +14,7 @@ exports.saveAccount = function saveAccount(account, callback) {
           + "returning account_id, base_keyring_id",
       values: [account.username]
     }, function (err, result) {
+
       if (err) {
         client.query('rollback');
         if (err.code === '23505') {
@@ -24,8 +25,7 @@ exports.saveAccount = function saveAccount(account, callback) {
         }
         return;
       }
-
-      var query = {
+      client.query({
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
             + "  challenge_key, challenge_key_salt,"
@@ -42,15 +42,15 @@ exports.saveAccount = function saveAccount(account, callback) {
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
-          account.challengeKey, account.saltChallenge,
-          account.saltKey, account.keypairIv, account.keypairSerializedCiphertext,
-          account.pubKey, account.symkeyCiphertext,
-          account.containerNameHmacKeyIv, account.containerNameHmacKeyCiphertext,
+          account.challengeKey, account.challengeKeySalt,
+          account.keypairSalt, account.keypairIv, account.keypairCiphertext,
+          account.pubkey, account.symkeyCiphertext,
+          account.containerNameHmacKeyIv,
+          account.containerNameHmacKeyCiphertext,
           account.hmacKeyIv, account.hmacKeyCiphertext
         ]
-      };
+      }, function (err) {
 
-      client.query(query, function (err) {
         if (err) {
           client.query('rollback');
           if (err.code === '23514') {
@@ -109,13 +109,13 @@ exports.getAccount = function getAccount(username, callback) {
         challengeKeySalt: result.rows[0].challenge_key_salt,
         keypairSalt: result.rows[0].keypair_salt,
         keypairIv: result.rows[0].keypair_iv,
-        keypair: result.rows[0].keypair,
+        keypairCiphertext: result.rows[0].keypair,
         pubkey: result.rows[0].pubkey,
-        symkey: result.rows[0].symkey,
+        symkeyCiphertext: result.rows[0].symkey,
         containerNameHmacKeyIv: result.rows[0].container_name_hmac_key_iv,
-        containerNameHmacKey: result.rows[0].container_name_hmac_key,
+        containerNameHmacKeyCiphertext: result.rows[0].container_name_hmac_key,
         hmacKeyIv: result.rows[0].hmac_key_iv,
-        hmacKey: result.rows[0].hmac_key
+        hmacKeyCiphertext: result.rows[0].hmac_key
       });
     });
   });

@@ -41,17 +41,17 @@ describe("postgres/account", function () {
   var baseKeyringId = 2002;
   var newAccount = {
     username: 'testuser',
-    challengeKey: 'deadbeef',
-    challengeKeySalt: 'deadbeef',
-    keypairSalt: 'deadbeef',
-    keypairIv: 'deadbeef',
-    keypair: 'deadbeef',
-    pubkey: 'deadbeef',
-    symkey: 'deadbeef',
-    containerNameHmacKeyIv: 'deadbeef',
-    containerNameHmacKey: 'deadbeef',
-    hmacKeyIv: 'deadbeef',
-    hmacKey: 'deadbeef'
+    challengeKey: 'challenge key',
+    challengeKeySalt: 'challenge key salt',
+    keypairSalt: 'keypair salt',
+    keypairIv: 'keypair iv',
+    keypairCiphertext: 'keypair ciphertext',
+    pubkey: 'pubkey',
+    symkeyCiphertext: 'symkey ciphertext',
+    containerNameHmacKeyIv: 'container name hmac key iv',
+    containerNameHmacKeyCiphertext: 'container name hmac key ciphertext',
+    hmacKeyIv: 'hmac key iv',
+    hmacKeyCiphertext: 'hmack key ciphertext'
   };
 
   before(function () {
@@ -83,10 +83,12 @@ describe("postgres/account", function () {
         { text: /^insert into base_keyring /, values: [
           baseKeyringId, accountId,
           newAccount.challengeKey, newAccount.challengeKeySalt,
-          newAccount.keypairSalt, newAccount.keypairIv, newAccount.keypair,
-          newAccount.pubkey, newAccount.symkey,
-          newAccount.containerNameHmacKeyIv, newAccount.containerNameHmacKey,
-          newAccount.hmacKeyIv, newAccount.hmacKey
+          newAccount.keypairSalt, newAccount.keypairIv,
+          newAccount.keypairCiphertext,
+          newAccount.pubkey, newAccount.symkeyCiphertext,
+          newAccount.containerNameHmacKeyIv,
+          newAccount.containerNameHmacKeyCiphertext,
+          newAccount.hmacKeyIv, newAccount.hmacKeyCiphertext
         ] },
         /^commit$/
       ];
@@ -134,10 +136,12 @@ describe("postgres/account", function () {
           { text: /^insert into base_keyring /, values: [
             baseKeyringId, accountId,
             newAccount.challengeKey, newAccount.challengeKeySalt,
-            newAccount.keypairSalt, newAccount.keypairIv, newAccount.keypair,
-            newAccount.pubkey, newAccount.symkey,
-            newAccount.containerNameHmacKeyIv, newAccount.containerNameHmacKey,
-            newAccount.hmacKeyIv, newAccount.hmacKey
+            newAccount.keypairSalt, newAccount.keypairIv,
+            newAccount.keypairCiphertext,
+            newAccount.pubkey, newAccount.symkeyCiphertext,
+            newAccount.containerNameHmacKeyIv,
+            newAccount.containerNameHmacKeyCiphertext,
+            newAccount.hmacKeyIv, newAccount.hmacKeyCiphertext
           ] },
           /^rollback$/
         ];
@@ -158,13 +162,13 @@ describe("postgres/account", function () {
           challenge_key_salt: newAccount.challengeKeySalt,
           keypair_salt: newAccount.keypairSalt,
           keypair_iv: newAccount.keypairIv,
-          keypair: newAccount.keypair,
+          keypair: newAccount.keypairCiphertext,
           pubkey: newAccount.pubkey,
-          symkey: newAccount.symkey,
+          symkey: newAccount.symkeyCiphertext,
           container_name_hmac_key_iv: newAccount.containerNameHmacKeyIv,
-          container_name_hmac_key: newAccount.containerNameHmacKey,
+          container_name_hmac_key: newAccount.containerNameHmacKeyCiphertext,
           hmac_key_iv: newAccount.hmacKeyIv,
-          hmac_key: newAccount.hmacKey
+          hmac_key: newAccount.hmacKeyCiphertext
         }] }]
       ];
       account.getAccount(newAccount.username, function (err, theAccount) {
