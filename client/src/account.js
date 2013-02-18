@@ -21,8 +21,8 @@
     var hp = CryptoJS.enc.Hex.parse;
 
     // reconstruct keypairKey from passphrase
-    var saltKey = hp(this.saltKey);
-    var keypairKey = CryptoJS.PBKDF2(this.passphrase, saltKey, {
+    var keypairSalt = hp(this.keypairSalt);
+    var keypairKey = CryptoJS.PBKDF2(this.passphrase, keypairSalt, {
       keySize: 256 / 32,
       // iterations: 1000
     });
@@ -30,8 +30,9 @@
     // decrypt keypair
     var keypairIv = hp(this.keypairIv);
     var encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.keypairSerializedCiphertext),
-      iv: keypairIv
+      ciphertext: hp(this.keypair),
+      iv: keypairIv,
+      salt: hp(this.keypairSalt)
     });
     var keypairSerialized = CryptoJS.AES.decrypt(
       encrypted, keypairKey, {
@@ -45,13 +46,13 @@
     this.keypair = new RSAKey().fromString(keypairSerialized);
 
     // decrypt symkey
-    var symkey = this.keypair.decrypt(this.symkeyCiphertext);
+    var symkey = this.keypair.decrypt(this.symkey);
     this.symkey = hp(symkey);
 
     // decrypt containerNameHmacKey
     var containerNameHmacKeyIv = hp(this.containerNameHmacKeyIv);
     encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.containerNameHmacKeyCiphertext),
+      ciphertext: hp(this.containerNameHmacKey),
       iv: containerNameHmacKeyIv
     });
     this.containerNameHmacKey = CryptoJS.AES.decrypt(
@@ -65,7 +66,7 @@
     // decrypt hmacKey
     var hmacKeyIv = hp(this.hmacKeyIv);
     encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.hmacKeyCiphertext),
+      ciphertext: hp(this.hmacKey),
       iv: hmacKeyIv
     });
     this.hmacKey = CryptoJS.AES.decrypt(

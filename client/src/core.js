@@ -160,15 +160,15 @@ var crypton = {};
 
         var body = res.body;
         var iv = CryptoJS.enc.Hex.parse(body.iv);
-        var saltChallenge = CryptoJS.enc.Hex.parse(body.saltChallenge);
-        var challengeKey = CryptoJS.PBKDF2(passphrase, saltChallenge, { 
+        var challengeKeySalt = CryptoJS.enc.Hex.parse(body.challengeKeySalt);
+        var challengeKey = CryptoJS.PBKDF2(passphrase, challengeKeySalt, {
           keySize: 256 / 32,
           // iterations: 1000
         });
 
         var encrypted = CryptoJS.lib.CipherParams.create({
           ciphertext: CryptoJS.enc.Hex.parse(body.challenge),
-          salt: saltChallenge,
+          salt: challengeKeySalt,
           iv: iv
         });
 
