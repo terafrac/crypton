@@ -10,4 +10,5 @@ function extend(modName) {
 extend('./util');
 extend('./account');
 extend('./challenge');
+extend('./container');
 extend('./transaction');
