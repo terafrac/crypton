@@ -182,11 +182,12 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
   connect(function (client) {
     var query = {
       /*jslint multistr: true*/
-      text: '\
+      text: "\
         insert into transaction_add_container_record \
         (transaction_id, name_hmac, latest_record_id, \
         hmac, payload_iv, payload_ciphertext) \
-        values ($1, $2, $3, $4, $5, $6)',
+        values ($1, $2, $3, decode($4, 'hex'), \
+        decode($5, 'hex'), decode($6, 'hex'))",
       /*jslint multistr: false*/
       values: [
         transaction.transactionId,
@@ -265,7 +266,6 @@ commit.finish = function (transactionId, callback) {
       .replace(/\{\{hostname\}\}/gi, 'hostname')
       .replace(/\{\{transactionId\}\}/gi, transactionId);
 
-console.log(tq);
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');

@@ -40,12 +40,12 @@
       containerName,
       this.account.containerNameHmacKey
     ).toString();
-    var payloadIv = crypton.randomBytes(32);
+    var payloadIv = crypton.randomBytes(16);
     var payloadCiphertext = CryptoJS.AES.encrypt(
       JSON.stringify({}), hmacKey, {
         iv: payloadIv,
         mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.NoPadding
+        padding: CryptoJS.pad.Pkcs7
       }
     ).ciphertext.toString();
     var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, hmacKey);
@@ -78,6 +78,11 @@
         tx.save(chunk, callback);
       }.bind(this), function (err) {
         // TODO handle err
+        if (err) {
+          console.log(err);
+          return;
+        }
+
         tx.commit(function () {
           var container = new crypton.Container();
           container.name = containerName;
