@@ -28,7 +28,7 @@
 
       this.containers.push(container);
       callback(null, container);
-    });
+    }.bind(this));
   };
 
   Session.prototype.create = function (containerName, callback) {
@@ -39,7 +39,6 @@
       }
     }
 
-return callback();
     var sessionKey = crypton.randomBytes(32);
     var hmacKey = crypton.randomBytes(32);
     var signature = 'hello'; // TODO sign with private key
@@ -108,7 +107,7 @@ return callback();
     var container = new crypton.Container(this);
     container.name = containerName;
     container.sync(function (err) {
-      console.log(arguments);
+      callback(err, container);
     });
   };
 })();

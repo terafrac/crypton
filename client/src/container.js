@@ -32,10 +32,31 @@
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
 
-      var tx = new crypton.Transaction(this.session);
-      tx.save(diff);
-      tx.commit(function (err) {
-        callback();
+      var payloadIv = crypton.randomBytes(16);
+      var payloadCiphertext = CryptoJS.AES.encrypt(
+        JSON.stringify(diff), this.hmacKey, {
+          iv: payloadIv,
+          mode: CryptoJS.mode.CFB,
+          padding: CryptoJS.pad.Pkcs7
+        }
+      ).ciphertext.toString();
+      var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, this.hmacKey);
+
+      var chunk = {
+        type: 'addContainerRecord',
+        containerNameHmac: this.getPublicName(),
+        hmac: payloadHmac.toString(),
+        payloadIv: payloadIv.toString(),
+        payloadCiphertext: payloadCiphertext
+      };
+
+      // TODO handle errs
+      var tx = new crypton.Transaction(this.session, function (err) {
+        tx.save(chunk, function (err) {
+          tx.commit(function (err) {
+            callback();
+          });
+        });
       });
     }.bind(this));
   };
@@ -107,6 +128,11 @@
 
     var hmacKeyCiphertext = hp(record.hmacKeyCiphertext).toString(CryptoJS.enc.Utf8);
     var hmacKey = hp(this.session.account.keypair.decrypt(hmacKeyCiphertext));
+
+    // XXX is this the correct way to store these?
+    // do they need to come with ever record?
+    this.sessionKey = sessionKey;
+    this.hmacKey = hmacKey;
 
     // TODO authenticate payload
     var payloadHmac = CryptoJS.HmacSHA256(record.payloadCiphertext, hmacKey);
