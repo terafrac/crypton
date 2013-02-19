@@ -11,6 +11,9 @@ test-unit-client:
 test-integration:
 	$(MAKE) -C integration_tests test
 
+node_modules:
+	npm install phantomjs node-phantom q should
+
 clean:
 	$(MAKE) -C client clean
 	$(MAKE) -C integration_tests clean-test-db

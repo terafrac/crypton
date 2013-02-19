@@ -12,12 +12,15 @@ dist/crypton.js: $(SRC)
 
 test: test-unit
 
-test-unit: node_modules dist/crypton.js
+test-unit: ../node_modules node_modules dist/crypton.js
 	@./node_modules/.bin/mocha-phantomjs test/index.html
 
 node_modules:
 	mkdir -p node_modules
 	npm install mocha-phantomjs
+
+../node_modules:
+	$(MAKE) -C .. node_modules
 
 clean:
 	-rm -rf dist
