@@ -185,7 +185,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
       text: '\
         insert into transaction_add_container_record \
         (transaction_id, name_hmac, latest_record_id, \
-        hmac, paylod_iv, payload_ciphertext) \
+        hmac, payload_iv, payload_ciphertext) \
         values ($1, $2, $3, $4, $5, $6)',
       /*jslint multistr: false*/
       values: [
@@ -267,6 +267,9 @@ commit.finish = function (transactionId, callback) {
 
 console.log(tq);
     client.query(tq, function (err, result) {
+      if (err) {
+        client.query('rollback');
+      }
       console.log(arguments);
     });
   });
