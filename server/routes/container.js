@@ -4,7 +4,7 @@ var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 
 app.get('/container/:containerNameHmac', verifySession, function (req, res) {
-  var containerName = req.params.containerNameHmac;
+  var containerNameHmac = req.params.containerNameHmac;
   var accountId = req.session.accountId;
 
   // TODO verify user has access to container
@@ -15,11 +15,12 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   });
   */
 
-  db.getContainerRecords(containerName, function (err, records) {
+  db.getContainerRecords(containerNameHmac, accountId, function (err, records) {
     if (err) {
+      console.log(err);
       res.send({
         success: false,
-        error: err
+        error: 'Database error'
       });
       return;
     }

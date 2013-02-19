@@ -2,15 +2,16 @@
   var Session = crypton.Session = function (id) {
     this.id = id;
     this.containers = [];
-  }
+  };
 
   Session.prototype.serialize = function (callback) {
-  }
+  };
 
   Session.prototype.ping = function (callback) {
-  }
+  };
 
   Session.prototype.load = function (containerName, callback) {
+    // check for a locally stored container
     for (var i in this.containers) {
       if (this.containers[i].name == containerName) {
         callback(null, this.containers[i]);
@@ -18,9 +19,16 @@
       }
     }
 
-    // TODO else load from server
+    // check for a container on the server
+    this.getContainer(containerName, function (err, container) {
+      if (err) {
+        callback(err);
+        return;
+      }
 
-    callback('Container does not exist');
+      this.containers.push(container);
+      callback(null, container);
+    });
   };
 
   Session.prototype.create = function (containerName, callback) {
@@ -31,6 +39,7 @@
       }
     }
 
+return callback();
     var sessionKey = crypton.randomBytes(32);
     var hmacKey = crypton.randomBytes(32);
     var signature = 'hello'; // TODO sign with private key
@@ -84,15 +93,22 @@
         }
 
         tx.commit(function () {
-          var container = new crypton.Container();
+          var container = new crypton.Container(that);
           container.name = containerName;
           container.sessionKey = sessionKey;
           container.hmacKey = hmacKey;
-          container.session = that;
           that.containers.push(container);
           callback(null, container);
         });
       });
+    });
+  };
+
+  Session.prototype.getContainer = function (containerName, callback) {
+    var container = new crypton.Container(this);
+    container.name = containerName;
+    container.sync(function (err) {
+      console.log(arguments);
     });
   };
 })();
