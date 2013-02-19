@@ -83,6 +83,7 @@ app.post('/account/:username/answer', function (req, res) {
     return;  
   }
 
+  answer = new Buffer(answer, 'hex');
   var answerDigest = crypto.createHash('sha256').update(answer).digest('hex');
 
   db.getChallengeAnswer(challengeId, function (err, challenge) {

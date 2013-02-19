@@ -180,7 +180,7 @@ var crypton = {};
           }
         );
 
-        var timeValueDigest = CryptoJS.SHA256(body.time).toString();
+        var timeValueDigest = CryptoJS.SHA256(body.time);
         var timeValueCiphertext = CryptoJS.AES.encrypt(
           timeValueDigest, challenge, {
             iv: iv,
