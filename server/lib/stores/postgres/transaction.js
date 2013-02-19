@@ -57,7 +57,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
   var valid = ~types.indexOf(type);
 
   if (!valid) {
-    callback('Invalid transactiont type');
+    callback('Invalid transaction type');
     return;
   }
 
