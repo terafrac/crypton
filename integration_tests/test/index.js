@@ -3,20 +3,6 @@
 
 var should = require('should');
 var Q = require('q');
-Q.defer.prototype.makeMochaResolver = function () {
-  var self = this;
-  return function (err) {
-    if (err) { self.reject(err); }
-    else { self.resolve(); }
-  };
-};
-Q.mfcall = function (callback/*, ...args */) {
-  var cbArgs = Array.prototype.slice.call(arguments, 1);
-  var deferred = Q.defer();
-  cbArgs.unshift(deferred.makeMochaResolver());
-  Q.fapply(callback, cbArgs).fail(deferred.reject);
-  return deferred.promise;
-};
 
 var phantom = require('node-phantom');
 var phantomOptions = { phantomPath: require('phantomjs').path };
