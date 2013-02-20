@@ -57,7 +57,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
   var valid = ~types.indexOf(type);
 
   if (!valid) {
-    callback('Invalid transactiont type');
+    callback('Invalid transaction type');
     return;
   }
 
@@ -71,8 +71,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
       }
 
       datastore.transaction[type](data, transaction, function (err) {
-        console.log(arguments);
-        callback();
+        callback(err);
       });
     });
   });
@@ -88,8 +87,8 @@ datastore.requestTransactionCommit = function (token, account, callback) {
         });
       }
 
-      commit.request(transaction.transactionId, function () {
-        console.log(arguments);
+      commit.request(transaction.transactionId, function (err) {
+        // TODO handle err
         callback();
       });
     });
@@ -249,7 +248,7 @@ commit.troll = function () {
       }
 
       if (result.rows.length) {
-        console.log(result.rows);
+        console.log(result.rows.length + ' transactions to commit');
         // TODO queue
         for (var i in result.rows) {
           commit.finish(result.rows[i].transaction_id);
@@ -260,7 +259,7 @@ commit.troll = function () {
 };
 setInterval(commit.troll, 100);
 
-commit.finish = function (transactionId, callback) {
+commit.finish = function (transactionId) {
   connect(function (client) {
     var tq = transactionQuery
       .replace(/\{\{hostname\}\}/gi, 'hostname')
@@ -269,8 +268,8 @@ commit.finish = function (transactionId, callback) {
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');
+        console.log(err);
       }
-      console.log(arguments);
     });
   });
 };
