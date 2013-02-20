@@ -7,7 +7,7 @@
     this.name = null;
   };
 
-  Container.prototype.add = function (key, value) {
+  Container.prototype.add = function (key, callback) {
     if (this.keys[key]) {
       callback('Key already exists');
       return;
@@ -27,7 +27,6 @@
 
   Container.prototype.save = function (callback) {
     this.getDiff(function (err, diff) {
-      console.log(diff);
       var now = +new Date();
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
@@ -114,10 +113,11 @@
     for (var i in records) {
       var record = this.decryptRecord(records[i]);
       // TODO apply diff to keys object
-      console.log(record);
+      keys = crypton.diff.apply(record.delta, keys);
+      versions[record.time] = JSON.parse(JSON.stringify(keys));
     }
 
-    callback(null, keys);
+    callback(null, keys, versions);
   };
 
   Container.prototype.decryptRecord = function (record) {
@@ -153,15 +153,22 @@
 
     return {
       time: +new Date(record.creationTime),
-      diff: payload
+      delta: payload
     };
   };
 
   Container.prototype.sync = function (callback) {
     var that = this;
     this.getHistory(function (err, records) {
+      if (err) {
+        callback(err);
+        return;
+      }
+
       that.parseHistory(records, function (err, keys, versions) {
         that.keys = keys;
+        that.versions = versions;
+        that.version = Math.max.apply(Math, Object.keys(versions));
         callback(err);
       });
     });
