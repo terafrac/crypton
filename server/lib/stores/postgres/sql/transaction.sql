@@ -75,7 +75,8 @@ create temp table txtmp_add_container_session_key_share as
                                        from container
                                       where name_hmac=tacsks.name_hmac))
            ) as container_session_key_id
-      from transaction_add_container_session_key_share tacsks;
+      from transaction_add_container_session_key_share tacsks
+     where transaction_id={{transactionId}};
 
 select tacsks.*, tx_tacsks.*, transaction.*
   from transaction_add_container_session_key_share tacsks
@@ -106,7 +107,8 @@ create temp table txtmp_add_container_record as
                                        from container
                                       where name_hmac=tar.name_hmac))
            ) as container_session_key_id
-  from transaction_add_container_record tar;
+  from transaction_add_container_record tar
+ where transaction_id={{transactionId}};
 
 select tacr.*, tx_tacr.*, t.*
   from transaction_add_container_record tacr
