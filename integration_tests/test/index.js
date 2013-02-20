@@ -151,6 +151,13 @@ describe('crypton', function () {
     var username = 'testuser';
     var password = 'testpassword';
 
+    beforeEach(function (done) {
+      app.datastore.deleteAccount(username, function (err) {
+        if (err !== 'Account not found.') { return done(err); }
+        done();
+      });
+    });
+
     it('returns session token', qTest(function () {
       this.timeout(100000);
       return openPage(this.phantom, '/test/crypton.html')

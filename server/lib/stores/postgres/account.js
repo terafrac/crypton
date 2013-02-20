@@ -120,3 +120,56 @@ exports.getAccount = function getAccount(username, callback) {
     });
   });
 };
+
+
+/* Delete an account and its keyring */
+// TODO: remove rows from other tables too
+exports.deleteAccount = function deleteAccount(username, callback) {
+  connect(function (client) {
+    client.query('begin', function (err) {
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        client.query('rollback');
+        callback('Database error.');
+        return;
+      }
+      client.query({
+        text: "delete from base_keyring where account_id in"
+            + "  (select account_id from account where username=$1)",
+        values: [username]
+      }, function (err, result) {
+        if (err) {
+          console.log('Unhandled database error: ' + err);
+          client.query('rollback');
+          callback('Database error.');
+          return;
+        }
+        client.query({
+          text: "delete from account where username=$1",
+          values: [username]
+        }, function (err, result) {
+          if (err) {
+            console.log('Unhandled database error: ' + err);
+            client.query('rollback');
+            callback('Database error.');
+            return;
+          }
+          if (!result.rowCount) {
+            callback('Account not found.');
+            return;
+          }
+
+          client.query('commit', function (err) {
+            if (err) {
+              console.log('Unhandled database error: ' + err);
+              client.query('rollback');
+              callback('Database error.');
+              return;
+            }
+            callback();
+          });
+        });
+      });
+    });
+  });
+};

@@ -201,4 +201,37 @@ describe("postgres/account", function () {
       });
     });
   });
+
+  describe("deleteAccount", function () {
+    it("deletes the account", function (done) {
+      client.callbackArgs = [
+        undefined,
+        [null, { rowCount: 0 }],
+        [null, { rowCount: 1 }]
+      ];
+      var expected = [
+        /^begin$/,
+        { text: /^delete from base_keyring /, values: [newAccount.username] },
+        { text: /^delete from account /, values: [newAccount.username] },
+        /^commit$/
+      ];
+      account.deleteAccount(newAccount.username, function (err) {
+        assert(!err, err);
+        assertQueryListMatches(client.queries, expected);
+        done();
+      });
+    });
+
+    it("returns an error if account not found", function (done) {
+      client.callbackArgs = [
+        undefined,
+        [null, { rowCount: 0 }],
+        [null, { rowCount: 0 }]
+      ];
+      account.deleteAccount(newAccount.username, function (err) {
+        assert.equal(err, 'Account not found.');
+        done();
+      });
+    });
+  });
 });
