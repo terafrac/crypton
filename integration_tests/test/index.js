@@ -26,12 +26,30 @@ app.use('/test', express.static(
   path.resolve(__dirname, '..', 'static')));
 
 
+/* Wrap a mocha test in a Q handler.
+*
+*  Return a promise from your test and this will call mocha's done() when
+*  resolved.
+*/
 function qTest(func) {
   return function (done) {
     func.call(this).done(done);
   };
 }
 
+
+/* Open a webpage using phantom, returning a promise.
+*
+*  First we call createPage, then we add some handlers for errors and console
+*  messages. Finally, we call open with the provided url (relative to
+*  config.baseUrl). The next function in the promise chain will receive an
+*  object with 'page' and 'status' attributes.
+*
+*  We also add a new method to the page object, callbackPromise, which adds a
+*  handler to the onCallback event of the page and returns a promise. This can
+*  be used by calling window.phantomCallback from within the page, to pass
+*  data back to the test.
+*/
 function openPage(ph, url) {
   return Q.nfcall(ph.createPage)
   .then(function (page) {
@@ -59,6 +77,16 @@ function openPage(ph, url) {
   });
 }
 
+
+/* Evaluate a function within a page, and wait for a callback.
+*
+*  This registers a callback handler (see callbackPromise in the openPage
+*  docs, above), then calls page.evaluate, returning the callback promise.
+*
+*  This allows you to call window.phantomCallback from within the evaluated
+*  function, enabling bi-directional communication with the page context from
+*  your tests.
+*/
 function evaluateCallback(page, func) {
   var evalArgs = [func, undefined].concat(
     Array.prototype.slice.call(arguments, 2));
