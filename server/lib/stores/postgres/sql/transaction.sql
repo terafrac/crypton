@@ -53,7 +53,8 @@ create temp table txtmp_add_container_session_key as
                  where name_hmac=tacsk.name_hmac)
            ) as container_id,
            name_hmac
-      from transaction_add_container_session_key tacsk;
+      from transaction_add_container_session_key tacsk
+     where transaction_id={{transactionId}};
 
 select tacsk.*, tx_tacsk.*, transaction.*
   from transaction_add_container_session_key tacsk
