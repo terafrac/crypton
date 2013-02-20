@@ -25,6 +25,14 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
       return;
     }
 
+    if (!records.length) {
+      res.send({
+        success: false,
+        error: 'Container does not exist'
+      });
+      return;
+    }
+
     res.send({
       success: true,
       records: records
