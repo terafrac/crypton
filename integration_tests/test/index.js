@@ -94,9 +94,12 @@ describe('crypton', function () {
     }, phantomOptions);
   });
 
-  after(function () {
-    this.phantom.exit();
-    this.server.close();
+  after(function (done) {
+    var phExit = Q.defer(), sClose = Q.defer();
+    this.phantom.exit(phExit.resolve);
+    this.server.close(sClose.resolve);
+    Q.all([phExit.promise, sClose.promise])
+    .done(function () { done(); }, function (err) { done(err); });
   });
 
   describe('functional test', function () {
