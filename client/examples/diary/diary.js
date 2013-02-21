@@ -77,10 +77,8 @@ actions.register = function (username, password) {
 };
 
 function init () {
-console.log('showing');
   $('#app').show();
   setTimeout(function () {
-console.log('unhiding');
     $('#header').removeClass('hiding');
   }, 200);
   loadDiary();
