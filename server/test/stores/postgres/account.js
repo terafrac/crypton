@@ -57,6 +57,7 @@ describe("postgres/account", function () {
   before(function () {
     mockery.enable({ useCleanCache: true });
     mockery.registerMock('./', { connect: function (cb) { cb(client); } });
+    mockery.registerAllowable('q');
     mockery.registerAllowable('../../../lib/stores/postgres/account');
     account = require('../../../lib/stores/postgres/account');
   });
