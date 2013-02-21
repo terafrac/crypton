@@ -58,7 +58,7 @@ actions.register = function (username, password) {
   var steps = 0;
   crypton.generateAccount(username, password, function step () {
     steps++;
-    $progress.width(Math.min((steps / 4048) * 300, 300));
+    $progress.width(Math.min((steps / 2048) * 300, 300));
     if (steps % 1000 === 0) {
       var message = messages.pop();
       $status.text(message);
