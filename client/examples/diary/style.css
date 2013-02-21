@@ -67,7 +67,6 @@ body.login {
 }
 
 #login .progressBar .progress {
-  width: 50px;
   height: 15px;
   background: #fff;
 }
@@ -103,6 +102,7 @@ small {
   padding: 0 15px;
   color: #fff;
   -webkit-transition: all 0.5s ease;
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 #header.hiding {
@@ -137,9 +137,100 @@ small {
 }
 
 #nav li a img {
+  position: relative;
+  top: 3px;
   width: 20px;
   height: 20px;
   margin-right: 10px;
+}
+
+#pad,
+#entryList {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  z-index: 0;
+  -webkit-transform: scale3d(1, 0, 0);
+  -webkit-transition: all 0.2s ease;
+}
+
+#pad.active,
+#entryList.active {
+  opacity: 1;
+  z-index: 9;
+  -webkit-transform: scale(1, 1);
+}
+
+#entryList ul {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+
+#entryList li {
+  opacity: 0.3;
+  padding: 20px;
+  display: block;
+}
+
+#entryList li:hover {
+  opacity: 1;
+  cursor: pointer;
+  background: #eee;
+}
+
+#pad textarea {
+  border: 0;
+  margin: 0;
+  resize: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  outline: 0;
+  padding: 15px;
+  font: 20px 'HelveticaNeue', Helvetica, Arial, sans-serif;
+}
+
+#controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  opacity: 0.9;
+  padding: 20px;
+  background: #fff;
+  text-align: right;
+}
+
+#date,
+#controls a {
+  display: block;
+  padding: 5px;
+  height: 30px;
+}
+
+#controls a {
+  border: 0;
+  color: #000;
+  background: 0;
+  text-decoration: none;
+}
+
+#controls a img {
+  margin-right: 10px;
   position: relative;
   top: 3px;
+}
+
+#save:hover {
+  color: green;
+}
+
+#delete:hover {
+  color: red;
 }

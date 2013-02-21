@@ -77,11 +77,18 @@ actions.register = function (username, password) {
 };
 
 function init () {
+console.log('showing');
   $('#app').show();
   setTimeout(function () {
+console.log('unhiding');
     $('#header').removeClass('hiding');
-  }, 100);
+  }, 200);
   loadDiary();
+
+  $('#create').click(createEntry);
+  $('#display').click(displayEntries);
+  $('#save').click(saveEntry);
+  $('#delete').click(deleteEntry);
 }
 
 function setStatus (message) {
@@ -107,34 +114,157 @@ function loadDiary () {
 
 function loadEntries () {
   setStatus('Loading entries...');
-console.log(diary);
   diary.add('entries', function () {
-console.log(arguments);
     diary.get('entries', function (err, entries) {
-console.log(arguments);
       window.entries = entries;
+      setStatus('');
       displayEntries();
     });
   });
 }
 
 function displayEntries () {
+  var keys = Object.keys(entries);
+
+  if (!keys.length) {
+    setStatus('No saved entries');
+    createEntry();
+    return;
+  }
+
+  if (!checkEntry()) {
+    return;
+  }
+
   setStatus('Rendering entries...');
-  console.log(diary);
-  console.log(entries);
+  clearInterval(dateRenderLoop);
+  $('#pad').removeClass('active');
+  entry = undefined;
+  var $list = $('#entryList');
+  $list.empty();
+  $list.addClass('active');
+
+  // sort the entries by timestamp descending
+  keys.sort();
+  keys.reverse();
+
+  var $ul = $('<ul />');
+  for (var i in keys) {
+    var $li = $('<li />');
+    var time = entries[keys[i]].time;
+    $li.text(prettyDate(time));
+    $li.data('time', time);
+    $li.click(clickEntry);
+    $ul.append($li);
+  }
+
+  $list.append($ul);
+  setStatus('');
 }
 
-function getEntry () {
+function showPad () {
+  var $list = $('#entryList');
+  var $pad = $('#pad');
+  $list.removeClass('active');
+  $pad.addClass('active');
+  $pad.find('textarea').focus().val(entry.body);
+}
 
+function clickEntry () {
+  var time = $(this).data('time');
+  getEntry(time);
+}
+
+function createEntry () {
+  window.entry = {};
+  entry.time = +new Date();
+  entry.body = '';
+  
+  showPad();
+  renderDate();
+}
+
+var dateRenderLoop;
+function renderDate () {
+  $('#date').text('Dated ' + prettyDate(entry.time));
+  dateRenderLoop = setInterval(function () {
+    $('#date').text('Dated ' + prettyDate(entry.time));
+  });
+}
+
+function checkEntry () {
+  if (typeof entry != 'undefined') {
+    var text = $('textarea').val();
+
+    // if it's not saved
+    if (!entries[entry.time]) {
+      // if it's not  blank
+      if (text.length) {
+        return confirmCheck();
+      }
+    } else {
+      // it is saved
+      // if it's changed
+      if (text != entries[entry.time].body) {
+        return confirmCheck();
+      }
+    }
+  }
+
+  return true;
+
+  function confirmCheck () {
+    return confirm('You have unsaved changes. Are you sure you want to leave this page?');
+  }
+}
+
+function getEntry (time) {
+  if (!checkEntry()) {
+    return;
+  }
+
+  window.entry = entries[time];
+  showPad();
+  renderDate();
 }
 
 function saveEntry () {
-
+  entry.body = $('textarea').val();
+  entries[entry.time] = entry;
+  saveDiary();
 }
 
 function deleteEntry () {
-
+  var sure = confirm('Are you sure you want to delete this entry?');
+  if (!sure) return;
+  delete entries[entry.time];
+  saveDiary();
+  displayEntries();
 }
 
+function saveDiary () {
+  setStatus('Saving diary...');
+  diary.save(function (err) {
+    setStatus(err || 'Diary saved');
+  });
+}
 
+function prettyDate (time) {
+  var d = new Date();
+  var date = new Date(time);
+  var diff = ((d.getTime() - date.getTime()) / 1000);
+  var day_diff = Math.floor(diff / 86400);
+  if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31) {
+    return;
+  }
 
+  return day_diff === 0 && (
+        diff < 60 && "just now" ||
+        diff < 120 && "1 minute ago" ||
+        diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+        diff < 7200 && "1 hour ago" ||
+        diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+    day_diff == 1 && "Yesterday" ||
+    day_diff < 7 && day_diff + " days ago" ||
+    day_diff < 31 && Math.ceil( day_diff / 7 ) + " week ago";
+}

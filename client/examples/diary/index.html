@@ -10,7 +10,7 @@
 </head>
 <body class="login">
   <div id="login">
-    <!--<p class="center"><strong>Crypton Diary</strong></p>-->
+    <img src="/examples/diary/crypton.png" alt="Crypton" />
     <p class="center" id="status"></p>
     <div class="center progressBar">
       <div class="progress"></div>
@@ -28,9 +28,18 @@
       <strong id="logo">Crypton Diary</strong>
       <span></span>
       <ul id="nav">
-        <li><a href="#"><img src="/examples/diary/list.png" alt="" />Entries</a></li>
-        <li><a href="#"><img src="/examples/diary/create.png" alt="" />Create</a></li>
+        <li><a href="#" id="display"><img src="/examples/diary/list.png" alt="" />Entries</a></li>
+        <li><a href="#" id="create"><img src="/examples/diary/create.png" alt="" />Create</a></li>
       </ul>
+    </div>
+    <div id="entryList"></div>
+    <div id="pad">
+      <div id="controls">
+        <span id="date"></span>
+        <a href="#" id="delete"><img src="/examples/diary/delete.png" alt="Delete" height="20"/> Delete</a>
+        <a href="#" id="save"><img src="/examples/diary/save.png" alt="Save" width="20" /> Save</a>
+      </div>
+      <textarea placeholder="Dear Diary,"></textarea>
     </div>
   </div>
 </body>
