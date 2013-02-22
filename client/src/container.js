@@ -14,6 +14,7 @@
     }
 
     this.keys[key] = {};
+    callback();
   };
 
   Container.prototype.get = function (key, callback) {
