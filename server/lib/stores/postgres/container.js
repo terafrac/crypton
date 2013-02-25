@@ -2,7 +2,7 @@ var datastore = require('./');
 var connect = datastore.connect;
 
 exports.getContainerRecords = function (containerNameHmac, accountId, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       // TODO limit to to_account_id
       /*jslint multistr: true*/
@@ -18,6 +18,8 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         callback(err);
         return;

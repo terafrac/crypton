@@ -33,7 +33,7 @@ var connect = datastore.connect = function connect(callback) {
     config.port + '/' +
     config.database;
 
-  pg.connect(conString, function (err, client) {
+  pg.connect(conString, function (err, client, done) {
     if (err) {
       // TODO: retry a few times with delays, so we can survive a quick
       // database hiccup. crash the whole app only if the DB's really
@@ -42,7 +42,8 @@ var connect = datastore.connect = function connect(callback) {
       console.log(err);
       process.exit(1);
     }
-    callback(client);
+
+    callback(client, done);
   });
 };
 

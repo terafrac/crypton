@@ -6,7 +6,7 @@ var connect = require('./').connect;
 /* Save a new account
  * Add keyring info to it */
 exports.saveAccount = function saveAccount(account, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     client.query('begin');
     client.query({
       text: "insert into account (username, base_keyring_id) "
@@ -50,18 +50,24 @@ exports.saveAccount = function saveAccount(account, callback) {
           account.hmacKeyIv, account.hmacKeyCiphertext
         ]
       }, function (err) {
-
         if (err) {
           client.query('rollback');
+          done();
+
           if (err.code === '23514') {
             callback('Invalid keyring data.');
           } else {
             console.log('Unhandled database error: ' + err);
             callback('Database error.');
           }
+
           return;
         }
-        client.query('commit', function () { callback(); });
+
+        client.query('commit', function () {
+          done();
+          callback();
+        });
       });
     });
   });
@@ -70,7 +76,7 @@ exports.saveAccount = function saveAccount(account, callback) {
 
 /* Get an account and its keyring */
 exports.getAccount = function getAccount(username, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     client.query({
       text: "select username,"
           + "  account.account_id, base_keyring_id,"
@@ -91,6 +97,8 @@ exports.getAccount = function getAccount(username, callback) {
           + "where username=$1",
       values: [username]
     }, function (err, result) {
+      done();
+
       if (err) {
         console.log('Unhandled database error: ' + err);
         callback('Database error.');

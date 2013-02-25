@@ -4,7 +4,7 @@ var fs = require('fs');
 var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toString();
 
 datastore.createTransaction = function (accountId, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction ("account_id") \
@@ -14,6 +14,8 @@ datastore.createTransaction = function (accountId, callback) {
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -26,13 +28,15 @@ datastore.createTransaction = function (accountId, callback) {
 };
 
 datastore.getTransaction = function (token, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       text: 'select * from transaction where transaction_id = $1',
       values: [ token ]
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -46,7 +50,8 @@ datastore.getTransaction = function (token, callback) {
 };
 
 datastore.deleteTransaction = function (token, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
+    done();
     callback();
   });
 };
@@ -61,7 +66,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
     return;
   }
 
-  connect(function (client) {
+  connect(function (client, done) {
     datastore.getTransaction(token, function (err, transaction) {
       if (account != transaction.accountId) {
         res.send({
@@ -71,6 +76,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
       }
 
       datastore.transaction[type](data, transaction, function (err) {
+        done();
         callback(err);
       });
     });
@@ -78,7 +84,7 @@ datastore.updateTransaction = function (token, account, data, callback) {
 };
 
 datastore.requestTransactionCommit = function (token, account, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     datastore.getTransaction(token, function (err, transaction) {
       if (account != transaction.accountId) {
         res.send({
@@ -88,7 +94,10 @@ datastore.requestTransactionCommit = function (token, account, callback) {
       }
 
       commit.request(transaction.transactionId, function (err) {
+        done();
+
         // TODO handle err
+
         callback();
       });
     });
@@ -98,7 +107,7 @@ datastore.requestTransactionCommit = function (token, account, callback) {
 datastore.transaction = {};
 
 datastore.transaction.addContainer = function (data, transaction, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container \
@@ -111,6 +120,8 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -123,7 +134,7 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
 };
 
 datastore.transaction.addContainerSessionKey = function (data, transaction, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container_session_key \
@@ -137,6 +148,8 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -149,7 +162,7 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
 };
 
 datastore.transaction.addContainerSessionKeyShare = function (data, transaction, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container_session_key_share \
@@ -166,6 +179,8 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -178,7 +193,7 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
 };
 
 datastore.transaction.addContainerRecord = function (data, transaction, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: "\
@@ -199,6 +214,8 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
     };
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         callback('Database error');
@@ -213,7 +230,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
 var commit = {};
 
 commit.request = function (transactionId, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: '\
@@ -226,12 +243,15 @@ commit.request = function (transactionId, callback) {
       ]
     };
 
-    client.query(query, callback);
+    client.query(query, function (err, results) {
+      done();
+      callback(err, results);
+    });
   });
 };
 
 commit.troll = function () {
-  connect(function (client) {
+  connect(function (client, done) {
     /*jslint multistr: true*/
     var query = '\
       select * from transaction \
@@ -241,6 +261,8 @@ commit.troll = function () {
       /*jslint multistr: false*/
 
     client.query(query, function (err, result) {
+      done();
+
       if (err) {
         console.log(err);
         process.exit(1);
@@ -260,7 +282,7 @@ commit.troll = function () {
 setInterval(commit.troll, 100);
 
 commit.finish = function (transactionId) {
-  connect(function (client) {
+  connect(function (client, done) {
     var tq = transactionQuery
       .replace(/\{\{hostname\}\}/gi, 'hostname')
       .replace(/\{\{transactionId\}\}/gi, transactionId);
@@ -270,6 +292,8 @@ commit.finish = function (transactionId) {
         client.query('rollback');
         console.log(err);
       }
+
+      done();
     });
   });
 };

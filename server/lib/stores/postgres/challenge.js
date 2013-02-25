@@ -2,13 +2,12 @@
 
 var connect = require('./').connect;
 
-
 /* Save a challenge answer
  * Return the challengeId */
 exports.saveChallengeAnswer = function saveChallengeAnswer(
   account, answerDigest, callback
 ) {
-  connect(function (client) {
+  connect(function (client, done) {
     client.query({
       text: "insert into challenge ("
           + "  account_id, base_keyring_id, expected_answer_digest"
@@ -19,28 +18,34 @@ exports.saveChallengeAnswer = function saveChallengeAnswer(
         answerDigest
       ]
     }, function (err, result) {
+      done();
+
       if (err) {
         console.log('Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
+
       callback(null, result.rows[0].challenge_id);
     });
   });
 };
 
 exports.getChallengeAnswer = function (challengeId, callback) {
-  connect(function (client) {
+  connect(function (client, done) {
     client.query({
       text: "select * "
           + "from challenge where challenge_id=$1",
       values: [ challengeId ]
     }, function (err, result) {
+      done();
+
       if (err) {
         console.log('Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
+
       if (!result.rows.length) {
         callback('Challenge not found.');
         return;
