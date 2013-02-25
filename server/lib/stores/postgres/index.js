@@ -7,6 +7,7 @@ function extend(modName) {
   }
 }
 
+extend('./db');
 extend('./util');
 extend('./account');
 extend('./challenge');

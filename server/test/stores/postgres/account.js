@@ -1,5 +1,6 @@
 'use strict';
 
+var Q = require('q');
 var mockery = require('mockery');
 var assert = require('assert');
 
@@ -28,11 +29,11 @@ describe("postgres/account", function () {
   var account;
   var client = {
     query: function (query, callback) {
-      client.queries.push(query);
+      client.testQueries.push(query);
       if (!callback) { return; }
       callback.apply(
         undefined,
-        client.callbackArgs[client.queries.length - 1]
+        client.callbackArgs[client.testQueries.length - 1]
       );
     }
   };
@@ -55,19 +56,28 @@ describe("postgres/account", function () {
   };
 
   before(function () {
+    var db = require('../../../lib/stores/postgres/db');
+    var mockDb = {};
+    for (var i in db) { mockDb[i] = db[i]; }
+    mockDb.connect = function () {
+      return Q.resolve(db.makePromising(client));
+    };
+
     mockery.enable({ useCleanCache: true });
-    mockery.registerMock('./', { connect: function (cb) { cb(client); } });
-    mockery.registerAllowable('q');
+    mockery.registerMock('./db', mockDb);
     mockery.registerAllowable('../../../lib/stores/postgres/account');
     account = require('../../../lib/stores/postgres/account');
   });
 
   beforeEach(function () {
-    client.queries = [];
+    client.testQueries = [];
     client.callbackArgs = [];
   });
 
-  after(function () { mockery.disable(); });
+  after(function () {
+    mockery.disable();
+    mockery.deregisterAll();
+  });
 
   describe("saveAccount", function () {
     it("inserts rows for account and keyring", function (done) {
@@ -98,7 +108,7 @@ describe("postgres/account", function () {
           done(err);
           return;
         }
-        assertQueryListMatches(client.queries, expected);
+        assertQueryListMatches(client.testQueries, expected);
         done();
       });
     });
@@ -115,7 +125,7 @@ describe("postgres/account", function () {
           { text: /^insert into account /, values: [newAccount.username] },
           /^rollback$/
         ];
-        assertQueryListMatches(client.queries, expected);
+        assertQueryListMatches(client.testQueries, expected);
         done();
       });
     });
@@ -146,7 +156,7 @@ describe("postgres/account", function () {
           ] },
           /^rollback$/
         ];
-        assertQueryListMatches(client.queries, expected);
+        assertQueryListMatches(client.testQueries, expected);
         done();
       });
     });
@@ -187,7 +197,7 @@ describe("postgres/account", function () {
             values: [newAccount.username]
           }
         ];
-        assertQueryListMatches(client.queries, expected);
+        assertQueryListMatches(client.testQueries, expected);
         done();
       });
     });
@@ -218,7 +228,7 @@ describe("postgres/account", function () {
       ];
       account.deleteAccount(newAccount.username, function (err) {
         assert(!err, err);
-        assertQueryListMatches(client.queries, expected);
+        assertQueryListMatches(client.testQueries, expected);
         done();
       });
     });
