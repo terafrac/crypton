@@ -8,7 +8,7 @@ node_modules:
 	ln -s ../server/node_modules node_modules
 
 ../node_modules:
-	cd .. && npm install underscore q express node-phantom phantomjs
+	cd .. && npm install underscore q express node-phantom phantomjs uglify-js
 
 setup-test-environment:
 	./bin/setup_test_environment.sh
